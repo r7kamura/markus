@@ -8,13 +8,22 @@ pub struct Parser<'a> {
     tree: Tree<Block>,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct Block {
+    begin: usize,
+    end: usize,
+}
+
 impl<'a> Parser<'a> {
     pub fn new(text: &'a str) -> Self {
-        let tree = parse_blocks(text);
-        Self { text, tree }
+        Self {
+            text,
+            tree: text.into(),
+        }
     }
 }
 
+/// Parser emits events as Iterator.
 impl<'a> Iterator for Parser<'a> {
     type Item = Event<'a>;
 
@@ -30,35 +39,31 @@ impl<'a> Iterator for Parser<'a> {
     }
 }
 
-/// Parse given text into block-level tree.
-fn parse_blocks(text: &str) -> Tree<Block> {
-    let mut tree = Tree::new();
+/// Convert text into block-level tree.
+impl From<&str> for Tree<Block> {
+    fn from(text: &str) -> Self {
+        let mut tree = Tree::new();
 
-    let mut index = 0;
-    while index < text.len() {
-        if let Some(i) = text[index..].find('\n') {
-            tree.append(Block {
-                begin: index,
-                end: index + i - 1,
-            });
-            index += i + 1;
-        } else {
-            tree.append(Block {
-                begin: index,
-                end: text.len() - 1,
-            });
-            break;
+        let mut index = 0;
+        while index < text.len() {
+            if let Some(i) = text[index..].find('\n') {
+                tree.append(Block {
+                    begin: index,
+                    end: index + i - 1,
+                });
+                index += i + 1;
+            } else {
+                tree.append(Block {
+                    begin: index,
+                    end: text.len() - 1,
+                });
+                break;
+            }
         }
+
+        tree.rewind();
+        tree
     }
-
-    tree.rewind();
-    tree
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct Block {
-    begin: usize,
-    end: usize,
 }
 
 #[cfg(test)]
