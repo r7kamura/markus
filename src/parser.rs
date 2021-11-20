@@ -5,7 +5,7 @@ use std::iter::Iterator;
 #[derive(Debug)]
 pub struct Parser<'a> {
     text: &'a str,
-    tree: Tree<Item>,
+    tree: Tree<Block>,
 }
 
 impl<'a> Parser<'a> {
@@ -31,19 +31,19 @@ impl<'a> Iterator for Parser<'a> {
 }
 
 /// Parse given text into block-level tree.
-fn parse_blocks(text: &str) -> Tree<Item> {
+fn parse_blocks(text: &str) -> Tree<Block> {
     let mut tree = Tree::new();
 
     let mut index = 0;
     while index < text.len() {
         if let Some(i) = text[index..].find('\n') {
-            tree.append(Item {
+            tree.append(Block {
                 begin: index,
                 end: index + i - 1,
             });
             index += i + 1;
         } else {
-            tree.append(Item {
+            tree.append(Block {
                 begin: index,
                 end: text.len() - 1,
             });
@@ -56,7 +56,7 @@ fn parse_blocks(text: &str) -> Tree<Item> {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct Item {
+pub struct Block {
     begin: usize,
     end: usize,
 }
