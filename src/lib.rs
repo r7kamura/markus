@@ -33,7 +33,7 @@ mod tests {
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Event::HeadingBegin(2)));
         assert_eq!(parser.next(), Some(Event::Text("abc")));
-        assert_eq!(parser.next(), Some(Event::HeadingEnd));
+        assert_eq!(parser.next(), Some(Event::HeadingEnd(2)));
         assert_eq!(parser.next(), None);
     }
 
@@ -43,7 +43,7 @@ mod tests {
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Event::HeadingBegin(2)));
         assert_eq!(parser.next(), Some(Event::Text("abc")));
-        assert_eq!(parser.next(), Some(Event::HeadingEnd));
+        assert_eq!(parser.next(), Some(Event::HeadingEnd(2)));
         assert_eq!(parser.next(), None);
     }
 
@@ -53,7 +53,7 @@ mod tests {
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Event::HeadingBegin(2)));
         assert_eq!(parser.next(), Some(Event::Text("")));
-        assert_eq!(parser.next(), Some(Event::HeadingEnd));
+        assert_eq!(parser.next(), Some(Event::HeadingEnd(2)));
         assert_eq!(parser.next(), None);
     }
 }

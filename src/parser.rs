@@ -45,7 +45,7 @@ impl<'a> Iterator for Parser<'a> {
                 self.tree.go_to_parent();
                 let index = self.tree.current?;
                 let event = match self.tree.nodes[index].item.kind {
-                    BlockKind::Heading(_) => Some(Event::HeadingEnd),
+                    BlockKind::Heading(level) => Some(Event::HeadingEnd(level)),
                     BlockKind::Paragraph => Some(Event::ParagraphEnd),
                     _ => panic!("Unexpected node is found as a parent."),
                 };
