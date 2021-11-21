@@ -50,8 +50,18 @@ mod tests {
     }
 
     #[test]
-    fn parse_heading_with_trailing_break() {
+    fn parse_heading_with_trailing_line_feed() {
         let text = "## abc\n";
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
+        assert_eq!(parser.next(), Some(Text("abc")));
+        assert_eq!(parser.next(), Some(End(Heading(H2))));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_heading_with_trailing_carriage_return() {
+        let text = "## abc\r";
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Begin(Heading(H2))));
         assert_eq!(parser.next(), Some(Text("abc")));

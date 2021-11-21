@@ -41,7 +41,7 @@ impl<'a> Parser<'a> {
         if index >= self.text.len() {
             return index;
         }
-        if let Some(i) = self.text[index..].find('\n') {
+        if let Some(i) = self.text[index..].find(is_line_break) {
             let end = index + i;
             self.tree.append(Block {
                 begin: index,
@@ -74,7 +74,7 @@ impl<'a> Parser<'a> {
             if index == self.text.len() {
                 break;
             }
-            if self.text[index..].starts_with('\n') {
+            if self.text[index..].starts_with(is_line_break) {
                 index += 1;
                 break;
             }
@@ -95,7 +95,7 @@ impl<'a> Parser<'a> {
         self.tree.go_to_child();
 
         index += level as usize;
-        index = self.parse_non_break_whitespaces(index);
+        index = self.parse_non_line_break_whitespaces(index);
         index = self.parse_line(index);
         if let Some(node_index) = self.tree.current {
             let item = self.tree.nodes[node_index].item;
@@ -103,7 +103,7 @@ impl<'a> Parser<'a> {
             let mut tail = header_text.len() - 1;
             tail = header_text[..=tail]
                 .iter()
-                .rposition(|&byte| byte != b'\n')
+                .rposition(|&byte| byte != b'\n' && byte != b'\r')
                 .unwrap_or(0);
             tail = header_text[..=tail]
                 .iter()
@@ -140,7 +140,7 @@ impl<'a> Parser<'a> {
     }
 
     /// Parse possible non-break whitespaces, and return index after parse.
-    fn parse_non_break_whitespaces(&self, index: usize) -> usize {
+    fn parse_non_line_break_whitespaces(&self, index: usize) -> usize {
         index
             + self.text[index..]
                 .as_bytes()
@@ -148,4 +148,8 @@ impl<'a> Parser<'a> {
                 .take_while(|&&byte| byte == b'\t' || byte == 0x0b || byte == 0x0c || byte == b' ')
                 .count()
     }
+}
+
+fn is_line_break(c: char) -> bool {
+    c == '\n' || c == '\r'
 }
