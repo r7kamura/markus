@@ -54,21 +54,3 @@ impl From<&str> for Tree<Block> {
         parser.run()
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::Parser;
-    use crate::event::Event;
-
-    #[test]
-    fn parse_works() {
-        let text = "abc\ndef\nghi";
-        let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(Event::ParagraphBegin));
-        assert_eq!(parser.next(), Some(Event::Text("abc")));
-        assert_eq!(parser.next(), Some(Event::Text("def")));
-        assert_eq!(parser.next(), Some(Event::Text("ghi")));
-        assert_eq!(parser.next(), Some(Event::ParagraphEnd));
-        assert_eq!(parser.next(), None);
-    }
-}
