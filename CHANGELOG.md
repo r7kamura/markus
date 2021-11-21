@@ -5,6 +5,11 @@
 ### Added
 
 - Add html::push_html function.
+- Support closing sequence on ATX-heading.
+
+### Fixed
+
+- Leave trailing break at the end of text node in paragraph.
 
 ## 0.2.0
 
@@ -18,4 +23,4 @@
 
 - Initial release.
 - Support paragraph.
-- Support ATX-style heading.
+- Support ATX heading.

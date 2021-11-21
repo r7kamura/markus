@@ -15,6 +15,6 @@ fn main() {
     let parser = Parser::new(text);
     let mut buffer = String::new();
     push_html(&mut buffer, parser);
-    assert_eq!(buffer, "<p>abcdefghi</p>".to_string());
+    assert_eq!(buffer, "<p>abc\ndef\nghi</p>".to_string());
 }
 ```
