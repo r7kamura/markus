@@ -1,5 +1,7 @@
 # markus
 
+[![test](https://github.com/r7kamura/markus/actions/workflows/test.yml/badge.svg)](https://github.com/r7kamura/markus/actions/workflows/test.yml)
+
 Makdown-like text parser.
 
 ## Usage
