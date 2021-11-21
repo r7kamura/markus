@@ -9,6 +9,7 @@ doc_comment::doctest!("../README.md");
 
 #[cfg(test)]
 mod tests {
+    use super::block::HeadingLevel;
     use super::event::Event;
     use super::parser::Parser;
 
@@ -31,9 +32,9 @@ mod tests {
     fn parse_heading() {
         let text = "## abc";
         let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(Event::HeadingBegin(2)));
+        assert_eq!(parser.next(), Some(Event::HeadingBegin(HeadingLevel::H2)));
         assert_eq!(parser.next(), Some(Event::Text("abc")));
-        assert_eq!(parser.next(), Some(Event::HeadingEnd(2)));
+        assert_eq!(parser.next(), Some(Event::HeadingEnd(HeadingLevel::H2)));
         assert_eq!(parser.next(), None);
     }
 
@@ -41,9 +42,9 @@ mod tests {
     fn parse_heading_with_whitespaces() {
         let text = "##  abc";
         let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(Event::HeadingBegin(2)));
+        assert_eq!(parser.next(), Some(Event::HeadingBegin(HeadingLevel::H2)));
         assert_eq!(parser.next(), Some(Event::Text("abc")));
-        assert_eq!(parser.next(), Some(Event::HeadingEnd(2)));
+        assert_eq!(parser.next(), Some(Event::HeadingEnd(HeadingLevel::H2)));
         assert_eq!(parser.next(), None);
     }
 
@@ -51,9 +52,19 @@ mod tests {
     fn parse_heading_with_empty_text() {
         let text = "##";
         let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(Event::HeadingBegin(2)));
+        assert_eq!(parser.next(), Some(Event::HeadingBegin(HeadingLevel::H2)));
         assert_eq!(parser.next(), Some(Event::Text("")));
-        assert_eq!(parser.next(), Some(Event::HeadingEnd(2)));
+        assert_eq!(parser.next(), Some(Event::HeadingEnd(HeadingLevel::H2)));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_heading_with_invalid_heading_level() {
+        let text = "####### abc";
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Event::ParagraphBegin));
+        assert_eq!(parser.next(), Some(Event::Text("####### abc")));
+        assert_eq!(parser.next(), Some(Event::ParagraphEnd));
         assert_eq!(parser.next(), None);
     }
 }

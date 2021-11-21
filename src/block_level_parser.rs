@@ -1,5 +1,6 @@
-use crate::block::{Block, BlockKind};
+use crate::block::{Block, BlockKind, HeadingLevel};
 use crate::tree::Tree;
+use std::convert::TryFrom;
 
 /// Convert text into block-level tree.
 impl From<&str> for Tree<Block> {
@@ -82,7 +83,7 @@ impl<'a> Parser<'a> {
     }
 
     /// Parse ATX-style heading (e.g. `## Usage`) from given index, and return index after the heading.
-    fn parse_atx_heading(&mut self, mut index: usize, level: usize) -> usize {
+    fn parse_atx_heading(&mut self, mut index: usize, level: HeadingLevel) -> usize {
         self.tree.append(Block {
             begin: index,
             end: 0, // This dummy value will be fixed at the end of this function.
@@ -90,7 +91,7 @@ impl<'a> Parser<'a> {
         });
         self.tree.go_to_child();
 
-        index += level;
+        index += level as usize;
         index = self.parse_non_break_whitespaces(index);
         index = self.parse_line(index);
 
@@ -100,14 +101,14 @@ impl<'a> Parser<'a> {
     }
 
     /// Check if ATX-style heading starts from given index, and return its level if found.
-    fn scan_atx_heading(&self, index: usize) -> Option<usize> {
+    fn scan_atx_heading(&self, index: usize) -> Option<HeadingLevel> {
         let bytes = self.text[index..].as_bytes();
         let level = bytes.iter().take_while(|&&byte| byte == b'#').count();
         if bytes
             .get(level)
             .map_or(true, |&byte| (0x09..=0x0d).contains(&byte) || byte == b' ')
         {
-            Some(level)
+            HeadingLevel::try_from(level).ok()
         } else {
             None
         }
