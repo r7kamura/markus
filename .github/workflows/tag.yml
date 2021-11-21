@@ -10,5 +10,3 @@ on:
 jobs:
   tag:
     uses: r7kamura/workflows/.github/workflows/rust-tag.yml@main
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
