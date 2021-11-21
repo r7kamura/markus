@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Change Event structure (e.g. ParagraphBegin -> Begin(Tag::Paragraph)).
+
 ## 0.1.1
 
 ### Added

@@ -1,5 +1,5 @@
 use crate::tree::Tree;
-use crate::types::{Block, BlockKind, Event};
+use crate::types::{Block, BlockKind, Event, Tag};
 use std::iter::Iterator;
 
 #[derive(Debug)]
@@ -28,11 +28,11 @@ impl<'a> Iterator for Parser<'a> {
                 match node.item.kind {
                     BlockKind::Heading(level) => {
                         self.tree.go_to_child();
-                        Some(Event::HeadingBegin(level))
+                        Some(Event::Begin(Tag::Heading(level)))
                     }
                     BlockKind::Paragraph => {
                         self.tree.go_to_child();
-                        Some(Event::ParagraphBegin)
+                        Some(Event::Begin(Tag::Paragraph))
                     }
                     BlockKind::Text => {
                         self.tree.go_to_next_sibling();
@@ -44,8 +44,8 @@ impl<'a> Iterator for Parser<'a> {
                 self.tree.go_to_parent();
                 let index = self.tree.current?;
                 let event = match self.tree.nodes[index].item.kind {
-                    BlockKind::Heading(level) => Some(Event::HeadingEnd(level)),
-                    BlockKind::Paragraph => Some(Event::ParagraphEnd),
+                    BlockKind::Heading(level) => Some(Event::End(Tag::Heading(level))),
+                    BlockKind::Paragraph => Some(Event::End(Tag::Paragraph)),
                     _ => panic!("Unexpected node is found as a parent."),
                 };
                 self.tree.go_to_next_sibling();
