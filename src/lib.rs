@@ -9,20 +9,22 @@ doc_comment::doctest!("../README.md");
 #[cfg(test)]
 mod tests {
     use super::parser::Parser;
-    use super::types::{Event, HeadingLevel, Tag};
+    use super::types::Event::{Begin, End, Text};
+    use super::types::HeadingLevel::H2;
+    use super::types::Tag::{Heading, Paragraph};
 
     #[test]
     fn parse_paragraphs() {
         let text = "abc\ndef\nghi\n\njkl";
         let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(Event::Begin(Tag::Paragraph)));
-        assert_eq!(parser.next(), Some(Event::Text("abc")));
-        assert_eq!(parser.next(), Some(Event::Text("def")));
-        assert_eq!(parser.next(), Some(Event::Text("ghi")));
-        assert_eq!(parser.next(), Some(Event::End(Tag::Paragraph)));
-        assert_eq!(parser.next(), Some(Event::Begin(Tag::Paragraph)));
-        assert_eq!(parser.next(), Some(Event::Text("jkl")));
-        assert_eq!(parser.next(), Some(Event::End(Tag::Paragraph)));
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("abc")));
+        assert_eq!(parser.next(), Some(Text("def")));
+        assert_eq!(parser.next(), Some(Text("ghi")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("jkl")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
         assert_eq!(parser.next(), None);
     }
 
@@ -30,15 +32,9 @@ mod tests {
     fn parse_heading() {
         let text = "## abc";
         let mut parser = Parser::new(text);
-        assert_eq!(
-            parser.next(),
-            Some(Event::Begin(Tag::Heading(HeadingLevel::H2)))
-        );
-        assert_eq!(parser.next(), Some(Event::Text("abc")));
-        assert_eq!(
-            parser.next(),
-            Some(Event::End(Tag::Heading(HeadingLevel::H2)))
-        );
+        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
+        assert_eq!(parser.next(), Some(Text("abc")));
+        assert_eq!(parser.next(), Some(End(Heading(H2))));
         assert_eq!(parser.next(), None);
     }
 
@@ -46,15 +42,9 @@ mod tests {
     fn parse_heading_with_whitespaces() {
         let text = "##  abc";
         let mut parser = Parser::new(text);
-        assert_eq!(
-            parser.next(),
-            Some(Event::Begin(Tag::Heading(HeadingLevel::H2)))
-        );
-        assert_eq!(parser.next(), Some(Event::Text("abc")));
-        assert_eq!(
-            parser.next(),
-            Some(Event::End(Tag::Heading(HeadingLevel::H2)))
-        );
+        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
+        assert_eq!(parser.next(), Some(Text("abc")));
+        assert_eq!(parser.next(), Some(End(Heading(H2))));
         assert_eq!(parser.next(), None);
     }
 
@@ -62,15 +52,9 @@ mod tests {
     fn parse_heading_with_empty_text() {
         let text = "##";
         let mut parser = Parser::new(text);
-        assert_eq!(
-            parser.next(),
-            Some(Event::Begin(Tag::Heading(HeadingLevel::H2)))
-        );
-        assert_eq!(parser.next(), Some(Event::Text("")));
-        assert_eq!(
-            parser.next(),
-            Some(Event::End(Tag::Heading(HeadingLevel::H2)))
-        );
+        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
+        assert_eq!(parser.next(), Some(Text("")));
+        assert_eq!(parser.next(), Some(End(Heading(H2))));
         assert_eq!(parser.next(), None);
     }
 
@@ -78,9 +62,9 @@ mod tests {
     fn parse_heading_with_invalid_heading_level() {
         let text = "####### abc";
         let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(Event::Begin(Tag::Paragraph)));
-        assert_eq!(parser.next(), Some(Event::Text("####### abc")));
-        assert_eq!(parser.next(), Some(Event::End(Tag::Paragraph)));
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("####### abc")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
         assert_eq!(parser.next(), None);
     }
 }
