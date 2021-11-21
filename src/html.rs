@@ -31,18 +31,3 @@ where
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::push_html;
-    use crate::parser::Parser;
-
-    #[test]
-    fn run() {
-        let text = "abc\ndef\nghi";
-        let parser = Parser::new(text);
-        let mut buffer = String::new();
-        push_html(&mut buffer, parser);
-        assert_eq!(buffer, "<p>abcdefghi</p>".to_string());
-    }
-}

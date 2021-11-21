@@ -38,14 +38,17 @@ impl<'a> Parser<'a> {
 
     /// Parse one line from given index, and return index after the line.
     fn parse_line(&mut self, index: usize) -> usize {
+        if index >= self.text.len() {
+            return index;
+        }
         if let Some(i) = self.text[index..].find('\n') {
-            let end = index + i - 1;
+            let end = index + i;
             self.tree.append(Block {
                 begin: index,
                 end,
                 kind: BlockKind::Text,
             });
-            end + 2
+            end + 1
         } else {
             let end = self.text.len() - 1;
             self.tree.append(Block {
@@ -82,7 +85,7 @@ impl<'a> Parser<'a> {
         index
     }
 
-    /// Parse ATX-style heading (e.g. `## Usage`) from given index, and return index after the heading.
+    /// Parse ATX heading (e.g. `## Usage`) from given index, and return index after the heading.
     fn parse_atx_heading(&mut self, mut index: usize, level: HeadingLevel) -> usize {
         self.tree.append(Block {
             begin: index,
@@ -94,6 +97,28 @@ impl<'a> Parser<'a> {
         index += level as usize;
         index = self.parse_non_break_whitespaces(index);
         index = self.parse_line(index);
+        if let Some(node_index) = self.tree.current {
+            let item = self.tree.nodes[node_index].item;
+            let header_text = &self.text.as_bytes()[item.begin..=item.end];
+            let mut tail = header_text.len() - 1;
+            tail = header_text[..=tail]
+                .iter()
+                .rposition(|&byte| byte != b'\n')
+                .unwrap_or(0);
+            tail = header_text[..=tail]
+                .iter()
+                .rposition(|&byte| byte != b' ' && byte != b'\t')
+                .unwrap_or(0);
+            tail = header_text[..=tail]
+                .iter()
+                .rposition(|&byte| byte != b'#')
+                .unwrap_or(0);
+            tail = header_text[..=tail]
+                .iter()
+                .rposition(|&byte| byte != b' ' && byte != b'\t')
+                .unwrap_or(0);
+            self.tree.nodes[node_index].item.end = item.begin + tail;
+        }
 
         self.tree.go_to_parent();
         self.tree.nodes[self.tree.current.unwrap()].item.end = index - 1; // Fix dummy value.
