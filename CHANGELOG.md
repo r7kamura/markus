@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add html::push_html function.
+
 ## 0.2.0
 
 ### Changed

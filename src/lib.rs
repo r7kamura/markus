@@ -1,4 +1,5 @@
 pub mod block_level_parser;
+pub mod html;
 pub mod parser;
 pub mod tree;
 pub mod types;
