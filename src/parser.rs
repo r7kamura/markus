@@ -1,6 +1,5 @@
-use crate::block::{Block, BlockKind};
-use crate::event::Event;
 use crate::tree::Tree;
+use crate::types::{Block, BlockKind, Event};
 use std::iter::Iterator;
 
 #[derive(Debug)]

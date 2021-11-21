@@ -1,4 +1,4 @@
-use crate::block::HeadingLevel;
+use crate::types::HeadingLevel;
 
 #[derive(Debug, PartialEq)]
 pub enum Event<'a> {

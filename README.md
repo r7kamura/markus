@@ -7,8 +7,8 @@ Makdown-like text parser.
 ## Usage
 
 ```rust
-use markus::event::Event;
 use markus::parser::Parser;
+use markus::types::Event;
 
 fn main() {
     let text = "abc\ndef\nghi";

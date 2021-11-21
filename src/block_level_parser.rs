@@ -1,5 +1,5 @@
-use crate::block::{Block, BlockKind, HeadingLevel};
 use crate::tree::Tree;
+use crate::types::{Block, BlockKind, HeadingLevel};
 use std::convert::TryFrom;
 
 /// Convert text into block-level tree.

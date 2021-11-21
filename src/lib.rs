@@ -1,17 +1,15 @@
-pub mod block;
 pub mod block_level_parser;
-pub mod event;
 pub mod parser;
 pub mod tree;
+pub mod types;
 
 #[cfg(doctest)]
 doc_comment::doctest!("../README.md");
 
 #[cfg(test)]
 mod tests {
-    use super::block::HeadingLevel;
-    use super::event::Event;
     use super::parser::Parser;
+    use super::types::{Event, HeadingLevel};
 
     #[test]
     fn parse_paragraphs() {
