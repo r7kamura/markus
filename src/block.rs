@@ -7,6 +7,7 @@ pub struct Block {
 
 #[derive(Clone, Copy, Debug)]
 pub enum BlockKind {
+    Heading(usize),
     Paragraph,
     Text,
 }

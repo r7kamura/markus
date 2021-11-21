@@ -27,6 +27,10 @@ impl<'a> Iterator for Parser<'a> {
             Some(index) => {
                 let node = self.tree.nodes[index];
                 match node.item.kind {
+                    BlockKind::Heading(level) => {
+                        self.tree.go_to_child();
+                        Some(Event::HeadingBegin(level))
+                    }
                     BlockKind::Paragraph => {
                         self.tree.go_to_child();
                         Some(Event::ParagraphBegin)
@@ -39,9 +43,14 @@ impl<'a> Iterator for Parser<'a> {
             }
             None => {
                 self.tree.go_to_parent();
-                self.tree.current?;
+                let index = self.tree.current?;
+                let event = match self.tree.nodes[index].item.kind {
+                    BlockKind::Heading(_) => Some(Event::HeadingEnd),
+                    BlockKind::Paragraph => Some(Event::ParagraphEnd),
+                    _ => panic!("Unexpected node is found as a parent."),
+                };
                 self.tree.go_to_next_sibling();
-                Some(Event::ParagraphEnd)
+                event
             }
         }
     }
