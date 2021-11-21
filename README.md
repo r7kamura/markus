@@ -8,16 +8,16 @@ Makdown-like text parser.
 
 ```rust
 use markus::parser::Parser;
-use markus::types::Event;
+use markus::types::{Event, Tag};
 
 fn main() {
     let text = "abc\ndef\nghi";
     let mut parser = Parser::new(text);
-    assert_eq!(parser.next(), Some(Event::ParagraphBegin));
+    assert_eq!(parser.next(), Some(Event::Begin(Tag::Paragraph)));
     assert_eq!(parser.next(), Some(Event::Text("abc")));
     assert_eq!(parser.next(), Some(Event::Text("def")));
     assert_eq!(parser.next(), Some(Event::Text("ghi")));
-    assert_eq!(parser.next(), Some(Event::ParagraphEnd));
+    assert_eq!(parser.next(), Some(Event::End(Tag::Paragraph)));
     assert_eq!(parser.next(), None);
 }
 ```
