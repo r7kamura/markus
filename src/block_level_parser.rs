@@ -1,20 +1,27 @@
 use crate::block::{Block, BlockKind};
 use crate::tree::Tree;
 
-pub struct Parser<'a> {
+/// Convert text into block-level tree.
+impl From<&str> for Tree<Block> {
+    fn from(text: &str) -> Self {
+        Parser::new(text).run()
+    }
+}
+
+struct Parser<'a> {
     text: &'a str,
     tree: Tree<Block>,
 }
 
 impl<'a> Parser<'a> {
-    pub fn new(text: &'a str) -> Self {
+    fn new(text: &'a str) -> Self {
         Self {
             text,
             tree: Tree::new(),
         }
     }
 
-    pub fn run(mut self) -> Tree<Block> {
+    fn run(mut self) -> Tree<Block> {
         // Only 1 paragraph is supported for now.
         self.parse_paragraph();
 
@@ -61,9 +68,4 @@ impl<'a> Parser<'a> {
         // Fix dummy value.
         self.tree.nodes[self.tree.current.unwrap()].item.end = index - 1;
     }
-}
-
-pub fn parse(text: &str) -> Tree<Block> {
-    let parser = Parser::new(text);
-    parser.run()
 }

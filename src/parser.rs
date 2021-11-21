@@ -46,11 +46,3 @@ impl<'a> Iterator for Parser<'a> {
         }
     }
 }
-
-/// Convert text into block-level tree.
-impl From<&str> for Tree<Block> {
-    fn from(text: &str) -> Self {
-        let parser = crate::block_level_parser::Parser::new(text);
-        parser.run()
-    }
-}
