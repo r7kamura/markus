@@ -22,14 +22,16 @@ impl<'a> Parser<'a> {
     }
 
     fn run(mut self) -> Tree<Block> {
-        // Only 1 paragraph is supported for now.
-        self.parse_paragraph();
+        let mut index = 0;
+        while index < self.text.len() {
+            index = self.parse_paragraph(index);
+        }
 
         self.tree.go_to_first();
         self.tree
     }
 
-    /// Parse one line and return index after line.
+    /// Parse one line from given index, and return index after the line.
     fn parse_line(&mut self, index: usize) -> usize {
         if let Some(i) = self.text[index..].find('\n') {
             let end = index + i - 1;
@@ -50,22 +52,28 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse_paragraph(&mut self) {
+    /// Parse one paragraph from given index, and return index after the paragraph.
+    fn parse_paragraph(&mut self, mut index: usize) -> usize {
         self.tree.append(Block {
-            begin: 0,
+            begin: index,
             end: 0, // This dummy value will be fixed at the end of this function.
             kind: BlockKind::Paragraph,
         });
         self.tree.go_to_child();
 
-        let mut index = 0;
-        while index < self.text.len() {
+        loop {
             index = self.parse_line(index);
+            if index == self.text.len() {
+                break;
+            }
+            if self.text[index..].starts_with('\n') {
+                index += 1;
+                break;
+            }
         }
 
         self.tree.go_to_parent();
-
-        // Fix dummy value.
-        self.tree.nodes[self.tree.current.unwrap()].item.end = index - 1;
+        self.tree.nodes[self.tree.current.unwrap()].item.end = index - 1; // Fix dummy value.
+        index
     }
 }
