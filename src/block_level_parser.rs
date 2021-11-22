@@ -25,7 +25,9 @@ impl<'a> Parser<'a> {
     fn run(mut self) -> Tree<Block> {
         let mut index = 0;
         while index < self.text.len() {
-            if let Some(length) = self.scan_thematic_break(index) {
+            if let Some(length) = self.scan_line_ending(index) {
+                index += length;
+            } else if let Some(length) = self.scan_thematic_break(index) {
                 index = self.parse_thematic_break(index, length);
             } else if let Some(level) = self.scan_atx_heading(index) {
                 index = self.parse_atx_heading(index, level);
@@ -67,11 +69,7 @@ impl<'a> Parser<'a> {
 
         loop {
             index = self.parse_line(index);
-            if index == self.text.len() {
-                break;
-            }
-            if self.text[index..].starts_with(is_line_break) {
-                index += 1;
+            if self.scan_paragraph_interrupt(index) {
                 break;
             }
         }
@@ -211,6 +209,24 @@ impl<'a> Parser<'a> {
             kind: BlockKind::ThematicBreak,
         });
         end
+    }
+
+    /// Check if pargraph interrupt starts from given index.
+    fn scan_paragraph_interrupt(&self, index: usize) -> bool {
+        self.scan_line_ending(index).is_some() || self.scan_thematic_break(index).is_some()
+    }
+
+    /// Check if line ending starts from given index, and return its length if found.
+    fn scan_line_ending(&self, index: usize) -> Option<usize> {
+        let bytes = &self.text[index..].as_bytes();
+        if bytes.is_empty() {
+            return Some(0);
+        }
+        match bytes[0] {
+            b'\n' => Some(1),
+            b'\r' => Some(if bytes.get(1) == Some(&b'\n') { 2 } else { 1 }),
+            _ => None,
+        }
     }
 }
 

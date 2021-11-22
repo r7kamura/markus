@@ -5,6 +5,7 @@
 ### Added
 
 - Support thematic breaks.
+- Support paragraph interrupt.
 
 ## 0.3.0
 
