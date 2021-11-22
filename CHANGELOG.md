@@ -6,6 +6,7 @@
 
 - Add html::push_html function.
 - Support closing sequence on ATX-heading.
+- Support carriage return.
 
 ### Fixed
 
