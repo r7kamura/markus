@@ -16,7 +16,7 @@
 - Fix max preceding spaces length on ATX headings.
 - Remove trailing line ending from paragraph last text node.
 
-## 0.3.0
+## 0.3.0 - 2021-11-22
 
 ### Added
 
@@ -30,13 +30,13 @@
 - Remove empty text node from ATX heading.
 - Allow up to 3 spaces before ATX heading marker.
 
-## 0.2.0
+## 0.2.0 - 2021-11-22
 
 ### Changed
 
 - Change Event structure (e.g. ParagraphBegin -> Begin(Tag::Paragraph)).
 
-## 0.1.1
+## 0.1.1 - 2021-11-22
 
 ### Added
 
