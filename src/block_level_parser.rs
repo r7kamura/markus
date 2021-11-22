@@ -41,23 +41,17 @@ impl<'a> Parser<'a> {
         if index >= self.text.len() {
             return index;
         }
-        if let Some(i) = self.text[index..].find(is_line_break) {
-            let end = index + i;
-            self.tree.append(Block {
-                begin: index,
-                end,
-                kind: BlockKind::Text,
-            });
-            end + 1
+        let end = if let Some(i) = self.text[index..].find(is_line_break) {
+            index + i
         } else {
-            let end = self.text.len() - 1;
-            self.tree.append(Block {
-                begin: index,
-                end,
-                kind: BlockKind::Text,
-            });
-            end + 1
-        }
+            self.text.len() - 1
+        };
+        self.tree.append(Block {
+            begin: index,
+            end,
+            kind: BlockKind::Text,
+        });
+        end + 1
     }
 
     /// Parse one paragraph from given index, and return index after the paragraph.
