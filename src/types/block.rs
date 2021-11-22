@@ -12,4 +12,5 @@ pub enum BlockKind {
     Heading(HeadingLevel),
     Paragraph,
     Text,
+    ThematicBreak,
 }

@@ -28,6 +28,9 @@ where
             Text(value) => {
                 writer.push_str(value);
             }
+            ThematicBreak => {
+                writer.push_str("<hr>");
+            }
         }
     }
 }

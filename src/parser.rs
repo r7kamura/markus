@@ -38,6 +38,10 @@ impl<'a> Iterator for Parser<'a> {
                         self.tree.go_to_next_sibling();
                         Some(Event::Text(&self.text[node.item.begin..node.item.end + 1]))
                     }
+                    BlockKind::ThematicBreak => {
+                        self.tree.go_to_next_sibling();
+                        Some(Event::ThematicBreak)
+                    }
                 }
             }
             None => {
