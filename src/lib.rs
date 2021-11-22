@@ -10,7 +10,7 @@ doc_comment::doctest!("../README.md");
 #[cfg(test)]
 mod tests {
     use super::parser::Parser;
-    use super::types::Event::{Begin, End, Text};
+    use super::types::Event::*;
     use super::types::HeadingLevel::H2;
     use super::types::Tag::{Heading, Paragraph};
 
@@ -143,6 +143,172 @@ mod tests {
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Begin(Paragraph)));
         assert_eq!(parser.next(), Some(Text("#abc")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_thematic_break_example_43() {
+        let text = r#"***
+---
+___"#;
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(ThematicBreak));
+        assert_eq!(parser.next(), Some(ThematicBreak));
+        assert_eq!(parser.next(), Some(ThematicBreak));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_thematic_break_example_44() {
+        let text = "+++";
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text(text)));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_thematic_break_example_45() {
+        let text = "===";
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text(text)));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_thematic_break_example_46() {
+        let text = r#"--
+**
+__"#;
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("--\n")));
+        assert_eq!(parser.next(), Some(Text("**\n")));
+        assert_eq!(parser.next(), Some(Text("__")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_thematic_break_example_47() {
+        let text = r#" ***
+  ***
+   ***"#;
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(ThematicBreak));
+        assert_eq!(parser.next(), Some(ThematicBreak));
+        assert_eq!(parser.next(), Some(ThematicBreak));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_thematic_break_example_48() {
+        let text = "    ***";
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text(text)));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_thematic_break_example_49() {
+        let text = r#"Foo
+    ***"#;
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("Foo\n")));
+        assert_eq!(parser.next(), Some(Text("    ***")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_thematic_break_example_50() {
+        let text = "_____________________________________";
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(ThematicBreak));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_thematic_break_example_51() {
+        let text = " - - -";
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(ThematicBreak));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_thematic_break_example_52() {
+        let text = " **  * ** * ** * **";
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(ThematicBreak));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_thematic_break_example_53() {
+        let text = "-     -      -      -";
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(ThematicBreak));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_thematic_break_example_54() {
+        let text = "- - - -    ";
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(ThematicBreak));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_thematic_break_example_55() {
+        let text = r#"_ _ _ _ a
+
+a------
+
+---a---"#;
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("_ _ _ _ a\n")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("a------\n")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("---a---")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_thematic_break_example_56() {
+        let text = " *-*";
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text(" *-*")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_thematic_break_example_59() {
+        let text = r#"Foo
+***
+bar"#;
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("Foo\n")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), Some(ThematicBreak));
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("bar")));
         assert_eq!(parser.next(), Some(End(Paragraph)));
         assert_eq!(parser.next(), None);
     }

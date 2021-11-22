@@ -5,4 +5,5 @@ pub enum Event<'a> {
     Begin(Tag),
     End(Tag),
     Text(&'a str),
+    ThematicBreak,
 }

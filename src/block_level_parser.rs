@@ -25,7 +25,9 @@ impl<'a> Parser<'a> {
     fn run(mut self) -> Tree<Block> {
         let mut index = 0;
         while index < self.text.len() {
-            if let Some(level) = self.scan_atx_heading(index) {
+            if let Some(length) = self.scan_thematic_break(index) {
+                index = self.parse_thematic_break(index, length);
+            } else if let Some(level) = self.scan_atx_heading(index) {
                 index = self.parse_atx_heading(index, level);
             } else {
                 index = self.parse_paragraph(index);
@@ -151,6 +153,64 @@ impl<'a> Parser<'a> {
                 .iter()
                 .take_while(|&&byte| byte == b'\t' || byte == 0x0b || byte == 0x0c || byte == b' ')
                 .count()
+    }
+
+    /// Check if thematic break starts from given index, and return its length if found, which includes possible line ending.
+    fn scan_thematic_break(&self, index: usize) -> Option<usize> {
+        let bytes = &self.text.as_bytes()[index..];
+        let mut i = bytes.iter().position(|&byte| byte != b' ')?;
+        if i >= 4 {
+            return None;
+        }
+        let mut characters_count = 0;
+        let mut first_found_character = None;
+        while i < bytes.len() {
+            match bytes[i] {
+                c if c == b'*' || c == b'-' || c == b'_' => {
+                    i += 1;
+                    if let Some(first) = first_found_character {
+                        if first != c {
+                            return None;
+                        }
+                        characters_count += 1;
+                    } else {
+                        characters_count = 1;
+                        first_found_character = Some(c)
+                    }
+                }
+                b' ' | b'\t' => {
+                    i += 1;
+                }
+                b'\n' => {
+                    i += 1;
+                    break;
+                }
+                b'\r' => {
+                    i += 1;
+                    if bytes[i] == b'\n' {
+                        i += 1;
+                    }
+                    break;
+                }
+                _ => return None,
+            }
+        }
+        if characters_count >= 3 {
+            Some(i)
+        } else {
+            None
+        }
+    }
+
+    /// Parse thematic break, and return index after parse.
+    fn parse_thematic_break(&mut self, index: usize, length: usize) -> usize {
+        let end = index + length;
+        self.tree.append(Block {
+            begin: index,
+            end,
+            kind: BlockKind::ThematicBreak,
+        });
+        end
     }
 }
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Support thematic breaks.
+
 ## 0.3.0
 
 ### Added
