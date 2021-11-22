@@ -97,4 +97,14 @@ mod tests {
         assert_eq!(parser.next(), Some(End(Paragraph)));
         assert_eq!(parser.next(), None);
     }
+
+    #[test]
+    fn parse_heading_without_space() {
+        let text = "#abc";
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("#abc")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), None);
+    }
 }
