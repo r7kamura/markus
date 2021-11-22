@@ -88,6 +88,7 @@ impl<'a> Parser<'a> {
         });
         self.tree.go_to_child();
 
+        index = self.parse_non_line_break_whitespaces(index);
         index += level as usize;
         index = self.parse_non_line_break_whitespaces(index);
         index = self.parse_line(index);
@@ -124,7 +125,13 @@ impl<'a> Parser<'a> {
 
     /// Check if ATX-style heading starts from given index, and return its level if found.
     fn scan_atx_heading(&self, index: usize) -> Option<HeadingLevel> {
-        let bytes = self.text[index..].as_bytes();
+        let mut bytes = self.text[index..].as_bytes();
+        let position = bytes.iter().position(|&byte| byte != b' ')?;
+        if position >= 3 {
+            return None;
+        }
+        bytes = &bytes[position..];
+
         let level = bytes.iter().take_while(|&&byte| byte == b'#').count();
         if bytes
             .get(level)

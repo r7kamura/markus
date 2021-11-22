@@ -12,6 +12,7 @@
 
 - Leave trailing break at the end of text node in paragraph.
 - Remove empty text node from ATX heading.
+- Allow up to 3 spaces before ATX heading marker.
 
 ## 0.2.0
 

@@ -80,6 +80,27 @@ mod tests {
     }
 
     #[test]
+    fn parse_heading_with_a_few_spaces_before_marker() {
+        let text = "  ## abc";
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
+        assert_eq!(parser.next(), Some(Text("abc")));
+        assert_eq!(parser.next(), Some(End(Heading(H2))));
+        assert_eq!(parser.next(), None);
+    }
+
+    // TODO: Leading four spaces should be treated as a indented code block.
+    #[test]
+    fn parse_heading_with_too_many_spaces_before_marker() {
+        let text = "    ## abc";
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("    ## abc")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
     fn parse_heading_with_empty_text() {
         let text = "##";
         let mut parser = Parser::new(text);
