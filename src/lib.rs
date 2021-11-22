@@ -11,157 +11,78 @@ doc_comment::doctest!("../README.md");
 mod tests {
     use super::parser::Parser;
     use super::types::Event::*;
-    use super::types::HeadingLevel::H2;
+    use super::types::HeadingLevel::*;
     use super::types::Tag::{Heading, Paragraph};
 
     #[test]
-    fn parse_paragraphs() {
-        let text = "abc\ndef\nghi\n\njkl";
+    fn parse_example_219_paragraphs() {
+        let text = include_str!("../tests/fixtures/markdowns/219.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Begin(Paragraph)));
-        assert_eq!(parser.next(), Some(Text("abc\n")));
-        assert_eq!(parser.next(), Some(Text("def\n")));
-        assert_eq!(parser.next(), Some(Text("ghi\n")));
+        assert_eq!(parser.next(), Some(Text("aaa\n")));
         assert_eq!(parser.next(), Some(End(Paragraph)));
         assert_eq!(parser.next(), Some(Begin(Paragraph)));
-        assert_eq!(parser.next(), Some(Text("jkl")));
+        assert_eq!(parser.next(), Some(Text("bbb\n")));
         assert_eq!(parser.next(), Some(End(Paragraph)));
         assert_eq!(parser.next(), None);
     }
 
     #[test]
-    fn parse_heading() {
-        let text = "## abc";
-        let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
-        assert_eq!(parser.next(), Some(Text("abc")));
-        assert_eq!(parser.next(), Some(End(Heading(H2))));
-        assert_eq!(parser.next(), None);
-    }
-
-    #[test]
-    fn parse_heading_with_closing_sequence() {
-        let text = "## abc # ";
-        let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
-        assert_eq!(parser.next(), Some(Text("abc")));
-        assert_eq!(parser.next(), Some(End(Heading(H2))));
-        assert_eq!(parser.next(), None);
-    }
-
-    #[test]
-    fn parse_heading_with_trailing_line_feed() {
-        let text = "## abc\n";
-        let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
-        assert_eq!(parser.next(), Some(Text("abc")));
-        assert_eq!(parser.next(), Some(End(Heading(H2))));
-        assert_eq!(parser.next(), None);
-    }
-
-    #[test]
-    fn parse_heading_with_trailing_carriage_return() {
-        let text = "## abc\r";
-        let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
-        assert_eq!(parser.next(), Some(Text("abc")));
-        assert_eq!(parser.next(), Some(End(Heading(H2))));
-        assert_eq!(parser.next(), None);
-    }
-
-    #[test]
-    fn parse_heading_with_whitespaces_after_marker() {
-        let text = "##  abc";
-        let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
-        assert_eq!(parser.next(), Some(Text("abc")));
-        assert_eq!(parser.next(), Some(End(Heading(H2))));
-        assert_eq!(parser.next(), None);
-    }
-
-    #[test]
-    fn parse_heading_with_a_few_spaces_before_marker() {
-        let text = "  ## abc";
-        let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
-        assert_eq!(parser.next(), Some(Text("abc")));
-        assert_eq!(parser.next(), Some(End(Heading(H2))));
-        assert_eq!(parser.next(), None);
-    }
-
-    // TODO: Leading four spaces should be treated as a indented code block.
-    #[test]
-    fn parse_heading_with_too_many_spaces_before_marker() {
-        let text = "    ## abc";
+    fn parse_example_220_paragraphs() {
+        let text = include_str!("../tests/fixtures/markdowns/220.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Begin(Paragraph)));
-        assert_eq!(parser.next(), Some(Text("    ## abc")));
+        assert_eq!(parser.next(), Some(Text("aaa\n")));
+        assert_eq!(parser.next(), Some(Text("bbb\n")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("ccc\n")));
+        assert_eq!(parser.next(), Some(Text("ddd\n")));
         assert_eq!(parser.next(), Some(End(Paragraph)));
         assert_eq!(parser.next(), None);
     }
 
     #[test]
-    fn parse_heading_with_empty_text() {
-        let text = "##";
-        let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
-        assert_eq!(parser.next(), Some(End(Heading(H2))));
-        assert_eq!(parser.next(), None);
-    }
-
-    #[test]
-    fn parse_heading_with_empty_text_with_line_feed() {
-        let text = "##\n";
-        let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
-        assert_eq!(parser.next(), Some(End(Heading(H2))));
-        assert_eq!(parser.next(), None);
-    }
-
-    #[test]
-    fn parse_heading_with_empty_text_with_closing_sequence() {
-        let text = "## ##";
-        let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
-        assert_eq!(parser.next(), Some(End(Heading(H2))));
-        assert_eq!(parser.next(), None);
-    }
-
-    #[test]
-    fn parse_heading_with_invalid_heading_level() {
-        let text = "####### abc";
+    fn parse_example_221_paragraphs() {
+        let text = include_str!("../tests/fixtures/markdowns/221.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Begin(Paragraph)));
-        assert_eq!(parser.next(), Some(Text("####### abc")));
+        assert_eq!(parser.next(), Some(Text("aaa\n")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("bbb\n")));
         assert_eq!(parser.next(), Some(End(Paragraph)));
         assert_eq!(parser.next(), None);
     }
 
     #[test]
-    fn parse_heading_without_space() {
-        let text = "#abc";
+    fn parse_example_062_atx_headings() {
+        let text = include_str!("../tests/fixtures/markdowns/062.md");
         let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(Begin(Paragraph)));
-        assert_eq!(parser.next(), Some(Text("#abc")));
-        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), Some(Begin(Heading(H1))));
+        assert_eq!(parser.next(), Some(Text("foo")));
+        assert_eq!(parser.next(), Some(End(Heading(H1))));
+        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
+        assert_eq!(parser.next(), Some(Text("foo")));
+        assert_eq!(parser.next(), Some(End(Heading(H2))));
+        assert_eq!(parser.next(), Some(Begin(Heading(H3))));
+        assert_eq!(parser.next(), Some(Text("foo")));
+        assert_eq!(parser.next(), Some(End(Heading(H3))));
+        assert_eq!(parser.next(), Some(Begin(Heading(H4))));
+        assert_eq!(parser.next(), Some(Text("foo")));
+        assert_eq!(parser.next(), Some(End(Heading(H4))));
+        assert_eq!(parser.next(), Some(Begin(Heading(H5))));
+        assert_eq!(parser.next(), Some(Text("foo")));
+        assert_eq!(parser.next(), Some(End(Heading(H5))));
+        assert_eq!(parser.next(), Some(Begin(Heading(H6))));
+        assert_eq!(parser.next(), Some(Text("foo")));
+        assert_eq!(parser.next(), Some(End(Heading(H6))));
         assert_eq!(parser.next(), None);
     }
 
     #[test]
-    fn parse_thematic_break_example_43() {
-        let text = r#"***
----
-___"#;
-        let mut parser = Parser::new(text);
-        assert_eq!(parser.next(), Some(ThematicBreak));
-        assert_eq!(parser.next(), Some(ThematicBreak));
-        assert_eq!(parser.next(), Some(ThematicBreak));
-        assert_eq!(parser.next(), None);
-    }
-
-    #[test]
-    fn parse_thematic_break_example_44() {
-        let text = "+++";
+    fn parse_example_063_atx_headings() {
+        let text = include_str!("../tests/fixtures/markdowns/063.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Begin(Paragraph)));
         assert_eq!(parser.next(), Some(Text(text)));
@@ -170,8 +91,21 @@ ___"#;
     }
 
     #[test]
-    fn parse_thematic_break_example_45() {
-        let text = "===";
+    fn parse_example_064_atx_headings() {
+        let text = include_str!("../tests/fixtures/markdowns/064.md");
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("#5 bolt\n")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("#hashtag\n")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_example_065_atx_headings() {
+        let text = include_str!("../tests/fixtures/markdowns/065.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Begin(Paragraph)));
         assert_eq!(parser.next(), Some(Text(text)));
@@ -180,24 +114,87 @@ ___"#;
     }
 
     #[test]
-    fn parse_thematic_break_example_46() {
-        let text = r#"--
-**
-__"#;
+    fn parse_example_067_atx_headings() {
+        let text = include_str!("../tests/fixtures/markdowns/067.md");
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Heading(H1))));
+        assert_eq!(parser.next(), Some(Text("foo")));
+        assert_eq!(parser.next(), Some(End(Heading(H1))));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_example_068_atx_headings() {
+        let text = include_str!("../tests/fixtures/markdowns/068.md");
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Heading(H3))));
+        assert_eq!(parser.next(), Some(Text("foo")));
+        assert_eq!(parser.next(), Some(End(Heading(H3))));
+        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
+        assert_eq!(parser.next(), Some(Text("foo")));
+        assert_eq!(parser.next(), Some(End(Heading(H2))));
+        assert_eq!(parser.next(), Some(Begin(Heading(H1))));
+        assert_eq!(parser.next(), Some(Text("foo")));
+        assert_eq!(parser.next(), Some(End(Heading(H1))));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_example_070_atx_headings() {
+        let text = include_str!("../tests/fixtures/markdowns/070.md");
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text("foo\n")));
+        assert_eq!(parser.next(), Some(Text("    # bar\n")));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_example_043_thematic_breaks() {
+        let text = include_str!("../tests/fixtures/markdowns/043.md");
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(ThematicBreak));
+        assert_eq!(parser.next(), Some(ThematicBreak));
+        assert_eq!(parser.next(), Some(ThematicBreak));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_example_044_thematic_breaks() {
+        let text = include_str!("../tests/fixtures/markdowns/044.md");
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text(text)));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_example_045_thematic_breaks() {
+        let text = include_str!("../tests/fixtures/markdowns/045.md");
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Paragraph)));
+        assert_eq!(parser.next(), Some(Text(text)));
+        assert_eq!(parser.next(), Some(End(Paragraph)));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_example_046_thematic_breaks() {
+        let text = include_str!("../tests/fixtures/markdowns/046.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Begin(Paragraph)));
         assert_eq!(parser.next(), Some(Text("--\n")));
         assert_eq!(parser.next(), Some(Text("**\n")));
-        assert_eq!(parser.next(), Some(Text("__")));
+        assert_eq!(parser.next(), Some(Text("__\n")));
         assert_eq!(parser.next(), Some(End(Paragraph)));
         assert_eq!(parser.next(), None);
     }
 
     #[test]
-    fn parse_thematic_break_example_47() {
-        let text = r#" ***
-  ***
-   ***"#;
+    fn parse_example_047_thematic_breaks() {
+        let text = include_str!("../tests/fixtures/markdowns/047.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(ThematicBreak));
         assert_eq!(parser.next(), Some(ThematicBreak));
@@ -206,8 +203,8 @@ __"#;
     }
 
     #[test]
-    fn parse_thematic_break_example_48() {
-        let text = "    ***";
+    fn parse_example_048_thematic_breaks() {
+        let text = include_str!("../tests/fixtures/markdowns/048.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Begin(Paragraph)));
         assert_eq!(parser.next(), Some(Text(text)));
@@ -216,64 +213,59 @@ __"#;
     }
 
     #[test]
-    fn parse_thematic_break_example_49() {
-        let text = r#"Foo
-    ***"#;
+    fn parse_example_049_thematic_breaks() {
+        let text = include_str!("../tests/fixtures/markdowns/049.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Begin(Paragraph)));
         assert_eq!(parser.next(), Some(Text("Foo\n")));
-        assert_eq!(parser.next(), Some(Text("    ***")));
+        assert_eq!(parser.next(), Some(Text("    ***\n")));
         assert_eq!(parser.next(), Some(End(Paragraph)));
         assert_eq!(parser.next(), None);
     }
 
     #[test]
-    fn parse_thematic_break_example_50() {
-        let text = "_____________________________________";
+    fn parse_example_050_thematic_breaks() {
+        let text = include_str!("../tests/fixtures/markdowns/050.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(ThematicBreak));
         assert_eq!(parser.next(), None);
     }
 
     #[test]
-    fn parse_thematic_break_example_51() {
-        let text = " - - -";
+    fn parse_example_051_thematic_breaks() {
+        let text = include_str!("../tests/fixtures/markdowns/051.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(ThematicBreak));
         assert_eq!(parser.next(), None);
     }
 
     #[test]
-    fn parse_thematic_break_example_52() {
-        let text = " **  * ** * ** * **";
+    fn parse_example_052_thematic_breaks() {
+        let text = include_str!("../tests/fixtures/markdowns/052.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(ThematicBreak));
         assert_eq!(parser.next(), None);
     }
 
     #[test]
-    fn parse_thematic_break_example_53() {
-        let text = "-     -      -      -";
+    fn parse_example_053_thematic_breaks() {
+        let text = include_str!("../tests/fixtures/markdowns/053.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(ThematicBreak));
         assert_eq!(parser.next(), None);
     }
 
     #[test]
-    fn parse_thematic_break_example_54() {
-        let text = "- - - -    ";
+    fn parse_example_054_thematic_breaks() {
+        let text = include_str!("../tests/fixtures/markdowns/054.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(ThematicBreak));
         assert_eq!(parser.next(), None);
     }
 
     #[test]
-    fn parse_thematic_break_example_55() {
-        let text = r#"_ _ _ _ a
-
-a------
-
----a---"#;
+    fn parse_example_055_thematic_breaks() {
+        let text = include_str!("../tests/fixtures/markdowns/055.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Begin(Paragraph)));
         assert_eq!(parser.next(), Some(Text("_ _ _ _ a\n")));
@@ -282,33 +274,31 @@ a------
         assert_eq!(parser.next(), Some(Text("a------\n")));
         assert_eq!(parser.next(), Some(End(Paragraph)));
         assert_eq!(parser.next(), Some(Begin(Paragraph)));
-        assert_eq!(parser.next(), Some(Text("---a---")));
+        assert_eq!(parser.next(), Some(Text("---a---\n")));
         assert_eq!(parser.next(), Some(End(Paragraph)));
         assert_eq!(parser.next(), None);
     }
 
     #[test]
-    fn parse_thematic_break_example_56() {
-        let text = " *-*";
+    fn parse_example_056_thematic_breaks() {
+        let text = include_str!("../tests/fixtures/markdowns/056.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Begin(Paragraph)));
-        assert_eq!(parser.next(), Some(Text(" *-*")));
+        assert_eq!(parser.next(), Some(Text(text)));
         assert_eq!(parser.next(), Some(End(Paragraph)));
         assert_eq!(parser.next(), None);
     }
 
     #[test]
-    fn parse_thematic_break_example_59() {
-        let text = r#"Foo
-***
-bar"#;
+    fn parse_example_059_thematic_breaks() {
+        let text = include_str!("../tests/fixtures/markdowns/059.md");
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Begin(Paragraph)));
         assert_eq!(parser.next(), Some(Text("Foo\n")));
         assert_eq!(parser.next(), Some(End(Paragraph)));
         assert_eq!(parser.next(), Some(ThematicBreak));
         assert_eq!(parser.next(), Some(Begin(Paragraph)));
-        assert_eq!(parser.next(), Some(Text("bar")));
+        assert_eq!(parser.next(), Some(Text("bar\n")));
         assert_eq!(parser.next(), Some(End(Paragraph)));
         assert_eq!(parser.next(), None);
     }
