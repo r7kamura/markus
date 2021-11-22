@@ -7,6 +7,10 @@
 - Support thematic breaks.
 - Support paragraph interrupt.
 
+### Fixed
+
+- Fix max preceding spaces length on ATX headings.
+
 ## 0.3.0
 
 ### Added

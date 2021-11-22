@@ -127,7 +127,7 @@ impl<'a> Parser<'a> {
     fn scan_atx_heading(&self, index: usize) -> Option<HeadingLevel> {
         let mut bytes = self.text[index..].as_bytes();
         let position = bytes.iter().position(|&byte| byte != b' ')?;
-        if position >= 3 {
+        if position >= 4 {
             return None;
         }
         bytes = &bytes[position..];
