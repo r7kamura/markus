@@ -7,6 +7,10 @@
 - Support thematic breaks.
 - Support paragraph interrupt.
 
+### Changed
+
+- Append line feed after closing HTML tag.
+
 ### Fixed
 
 - Fix max preceding spaces length on ATX headings.

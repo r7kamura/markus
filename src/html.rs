@@ -19,17 +19,17 @@ where
             },
             End(tag) => match tag {
                 Paragraph => {
-                    writer.push_str("</p>");
+                    writer.push_str("</p>\n");
                 }
                 Heading(level) => {
-                    writer.push_str(&format!("</h{}>", level as usize));
+                    writer.push_str(&format!("</h{}>\n", level as usize));
                 }
             },
             Text(value) => {
                 writer.push_str(value);
             }
             ThematicBreak => {
-                writer.push_str("<hr>");
+                writer.push_str("<hr />\n");
             }
         }
     }
