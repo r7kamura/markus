@@ -70,6 +70,16 @@ impl<'a> Parser<'a> {
         loop {
             index = self.parse_line(index);
             if self.scan_paragraph_interrupt(index) {
+                if let Some(node_index) = self.tree.current {
+                    let item = self.tree.nodes[node_index].item;
+                    let text = &self.text.as_bytes()[item.begin..=item.end];
+                    let mut tail = text.len();
+                    tail = text[..tail]
+                        .iter()
+                        .rposition(|&byte| byte != b'\n' && byte != b'\r')
+                        .map_or(0, |i| i + 1);
+                    self.tree.nodes[node_index].item.end = item.begin + tail - 1;
+                }
                 break;
             }
         }

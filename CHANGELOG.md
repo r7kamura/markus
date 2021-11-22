@@ -10,6 +10,7 @@
 ### Fixed
 
 - Fix max preceding spaces length on ATX headings.
+- Remove trailing line ending from paragraph last text node.
 
 ## 0.3.0
 
