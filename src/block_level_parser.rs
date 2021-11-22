@@ -94,24 +94,27 @@ impl<'a> Parser<'a> {
         if let Some(node_index) = self.tree.current {
             let item = self.tree.nodes[node_index].item;
             let header_text = &self.text.as_bytes()[item.begin..=item.end];
-            let mut tail = header_text.len() - 1;
-            tail = header_text[..=tail]
+            let mut tail = header_text.len();
+            tail = header_text[..tail]
                 .iter()
                 .rposition(|&byte| byte != b'\n' && byte != b'\r')
-                .unwrap_or(0);
-            tail = header_text[..=tail]
+                .map_or(0, |i| i + 1);
+            tail = header_text[..tail]
                 .iter()
                 .rposition(|&byte| byte != b' ' && byte != b'\t')
-                .unwrap_or(0);
-            tail = header_text[..=tail]
+                .map_or(0, |i| i + 1);
+            tail = header_text[..tail]
                 .iter()
                 .rposition(|&byte| byte != b'#')
-                .unwrap_or(0);
-            tail = header_text[..=tail]
+                .map_or(0, |i| i + 1);
+            tail = header_text[..tail]
                 .iter()
                 .rposition(|&byte| byte != b' ' && byte != b'\t')
-                .unwrap_or(0);
-            self.tree.nodes[node_index].item.end = item.begin + tail;
+                .map_or(0, |i| i + 1);
+            self.tree.nodes[node_index].item.end = item.begin + tail - 1;
+            if tail == 0 {
+                self.tree.nodes[*self.tree.ancestors.last().unwrap()].child = None;
+            }
         }
 
         self.tree.go_to_parent();

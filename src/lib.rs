@@ -70,7 +70,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_heading_with_whitespaces() {
+    fn parse_heading_with_whitespaces_after_marker() {
         let text = "##  abc";
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Begin(Heading(H2))));
@@ -82,6 +82,24 @@ mod tests {
     #[test]
     fn parse_heading_with_empty_text() {
         let text = "##";
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
+        assert_eq!(parser.next(), Some(End(Heading(H2))));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_heading_with_empty_text_with_line_feed() {
+        let text = "##\n";
+        let mut parser = Parser::new(text);
+        assert_eq!(parser.next(), Some(Begin(Heading(H2))));
+        assert_eq!(parser.next(), Some(End(Heading(H2))));
+        assert_eq!(parser.next(), None);
+    }
+
+    #[test]
+    fn parse_heading_with_empty_text_with_closing_sequence() {
+        let text = "## ##";
         let mut parser = Parser::new(text);
         assert_eq!(parser.next(), Some(Begin(Heading(H2))));
         assert_eq!(parser.next(), Some(End(Heading(H2))));
