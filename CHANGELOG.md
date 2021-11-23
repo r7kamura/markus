@@ -6,6 +6,7 @@
 
 - Skip leading spaces or tabs in paragraph.
 - Skip leading spaces or tabs of block.
+- Interrupt paragraph by ATX heading.
 
 ## 0.4.0 - 2021-11-23
 

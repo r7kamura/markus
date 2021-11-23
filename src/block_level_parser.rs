@@ -240,7 +240,9 @@ impl<'a> Parser<'a> {
 
     /// Check if pargraph interrupt starts from given index.
     fn scan_paragraph_interrupt(&self, index: usize) -> bool {
-        self.scan_line_ending(index).is_some() || self.scan_thematic_break(index).is_some()
+        self.scan_line_ending(index).is_some()
+            || self.scan_thematic_break(index).is_some()
+            || self.scan_atx_heading(index).is_some()
     }
 
     /// Check if line ending starts from given index, and return its length if found.
