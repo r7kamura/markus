@@ -169,4 +169,12 @@ mod tests {
             include_str!("../tests/fixtures/htmls/221.html"),
         );
     }
+
+    #[test]
+    fn parse_example_223() {
+        assert_parse(
+            include_str!("../tests/fixtures/markdowns/223.md"),
+            include_str!("../tests/fixtures/htmls/223.html"),
+        );
+    }
 }
