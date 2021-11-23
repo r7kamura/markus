@@ -46,24 +46,6 @@ impl<'a> Parser<'a> {
         self.tree
     }
 
-    /// Parse one line from given index, and return index after the line.
-    fn parse_line(&mut self, index: usize) -> usize {
-        if index >= self.text.len() {
-            return index;
-        }
-        let end = if let Some(i) = self.text[index..].find(is_line_ending) {
-            index + i
-        } else {
-            self.text.len() - 1
-        };
-        self.tree.append(Block {
-            begin: index,
-            end,
-            kind: BlockKind::Text,
-        });
-        end + 1
-    }
-
     /// Parse one paragraph from given index, and return index after the paragraph.
     fn parse_paragraph(&mut self, mut index: usize) -> usize {
         self.tree.append(Block {
@@ -140,24 +122,33 @@ impl<'a> Parser<'a> {
         index
     }
 
-    /// Check if ATX-style heading starts from given index, and return its level if found.
-    fn scan_atx_heading(&self, index: usize) -> Option<HeadingLevel> {
-        let mut bytes = self.text[index..].as_bytes();
-        let position = bytes.iter().position(|&byte| byte != b' ')?;
-        if position >= 4 {
-            return None;
-        }
-        bytes = &bytes[position..];
+    /// Parse thematic break, and return index after parse.
+    fn parse_thematic_break(&mut self, index: usize, length: usize) -> usize {
+        let end = index + length;
+        self.tree.append(Block {
+            begin: index,
+            end,
+            kind: BlockKind::ThematicBreak,
+        });
+        end
+    }
 
-        let level = bytes.iter().take_while(|&&byte| byte == b'#').count();
-        if bytes
-            .get(level)
-            .map_or(true, |&byte| (0x09..=0x0d).contains(&byte) || byte == b' ')
-        {
-            HeadingLevel::try_from(level).ok()
-        } else {
-            None
+    /// Parse one line from given index, and return index after the line.
+    fn parse_line(&mut self, index: usize) -> usize {
+        if index >= self.text.len() {
+            return index;
         }
+        let end = if let Some(i) = self.text[index..].find(is_line_ending) {
+            index + i
+        } else {
+            self.text.len() - 1
+        };
+        self.tree.append(Block {
+            begin: index,
+            end,
+            kind: BlockKind::Text,
+        });
+        end + 1
     }
 
     /// Parse 0 or more spaces or tabs, and return index after parse.
@@ -178,6 +169,26 @@ impl<'a> Parser<'a> {
                 .iter()
                 .take_while(|&&byte| byte == b'\t' || byte == 0x0b || byte == 0x0c || byte == b' ')
                 .count()
+    }
+
+    /// Check if ATX-style heading starts from given index, and return its level if found.
+    fn scan_atx_heading(&self, index: usize) -> Option<HeadingLevel> {
+        let mut bytes = self.text[index..].as_bytes();
+        let position = bytes.iter().position(|&byte| byte != b' ')?;
+        if position >= 4 {
+            return None;
+        }
+        bytes = &bytes[position..];
+
+        let level = bytes.iter().take_while(|&&byte| byte == b'#').count();
+        if bytes
+            .get(level)
+            .map_or(true, |&byte| (0x09..=0x0d).contains(&byte) || byte == b' ')
+        {
+            HeadingLevel::try_from(level).ok()
+        } else {
+            None
+        }
     }
 
     /// Check if thematic break starts from given index, and return its length if found, which includes possible line ending.
@@ -225,17 +236,6 @@ impl<'a> Parser<'a> {
         } else {
             None
         }
-    }
-
-    /// Parse thematic break, and return index after parse.
-    fn parse_thematic_break(&mut self, index: usize, length: usize) -> usize {
-        let end = index + length;
-        self.tree.append(Block {
-            begin: index,
-            end,
-            kind: BlockKind::ThematicBreak,
-        });
-        end
     }
 
     /// Check if pargraph interrupt starts from given index.
