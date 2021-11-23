@@ -45,7 +45,7 @@ impl<'a> Parser<'a> {
         if index >= self.text.len() {
             return index;
         }
-        let end = if let Some(i) = self.text[index..].find(is_line_break) {
+        let end = if let Some(i) = self.text[index..].find(is_line_ending) {
             index + i
         } else {
             self.text.len() - 1
@@ -98,9 +98,9 @@ impl<'a> Parser<'a> {
         });
         self.tree.go_to_child();
 
-        index = self.parse_non_line_break_whitespaces(index);
+        index = self.parse_non_line_ending_whitespaces(index);
         index += level as usize;
-        index = self.parse_non_line_break_whitespaces(index);
+        index = self.parse_non_line_ending_whitespaces(index);
         index = self.parse_line(index);
         if let Some(node_index) = self.tree.current {
             let item = self.tree.nodes[node_index].item;
@@ -153,8 +153,8 @@ impl<'a> Parser<'a> {
         }
     }
 
-    /// Parse possible non-break whitespaces, and return index after parse.
-    fn parse_non_line_break_whitespaces(&self, index: usize) -> usize {
+    /// Parse 0 or more non line ending whitespaces, and return index after parse.
+    fn parse_non_line_ending_whitespaces(&self, index: usize) -> usize {
         index
             + self.text[index..]
                 .as_bytes()
@@ -240,6 +240,6 @@ impl<'a> Parser<'a> {
     }
 }
 
-fn is_line_break(c: char) -> bool {
+fn is_line_ending(c: char) -> bool {
     c == '\n' || c == '\r'
 }
