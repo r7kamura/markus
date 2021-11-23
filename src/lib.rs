@@ -9,260 +9,695 @@ doc_comment::doctest!("../README.md");
 
 #[cfg(test)]
 mod tests {
-    use super::parser::Parser;
+    macro_rules! fail {
+        ($name: ident, $number:expr) => {
+            #[test]
+            fn $name() {
+                assert_ne!(
+                    &convert(include_str!(concat!(
+                        "../tests/fixtures/markdowns/",
+                        $number,
+                        ".md"
+                    ))),
+                    include_str!(concat!("../tests/fixtures/htmls/", $number, ".html"))
+                );
+            }
+        };
+    }
 
-    fn assert_parse(a: &str, b: &str) {
-        let parser = Parser::new(a);
+    macro_rules! pass {
+        ($name: ident, $number:expr) => {
+            #[test]
+            fn $name() {
+                assert_eq!(
+                    &convert(include_str!(concat!(
+                        "../tests/fixtures/markdowns/",
+                        $number,
+                        ".md"
+                    ))),
+                    include_str!(concat!("../tests/fixtures/htmls/", $number, ".html"))
+                );
+            }
+        };
+    }
+
+    fn convert(text: &str) -> String {
+        let parser = crate::parser::Parser::new(text);
         let mut buffer = String::new();
         crate::html::push_html(&mut buffer, parser);
-        assert_eq!(&buffer, b);
+        buffer
     }
 
-    #[test]
-    fn parse_example_043() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/043.md"),
-            include_str!("../tests/fixtures/htmls/043.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_044() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/044.md"),
-            include_str!("../tests/fixtures/htmls/044.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_045() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/045.md"),
-            include_str!("../tests/fixtures/htmls/045.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_046() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/046.md"),
-            include_str!("../tests/fixtures/htmls/046.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_047() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/047.md"),
-            include_str!("../tests/fixtures/htmls/047.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_049() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/049.md"),
-            include_str!("../tests/fixtures/htmls/049.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_050() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/050.md"),
-            include_str!("../tests/fixtures/htmls/050.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_051() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/051.md"),
-            include_str!("../tests/fixtures/htmls/051.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_052() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/052.md"),
-            include_str!("../tests/fixtures/htmls/052.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_053() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/053.md"),
-            include_str!("../tests/fixtures/htmls/053.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_054() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/054.md"),
-            include_str!("../tests/fixtures/htmls/054.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_055() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/055.md"),
-            include_str!("../tests/fixtures/htmls/055.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_058() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/058.md"),
-            include_str!("../tests/fixtures/htmls/058.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_062() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/062.md"),
-            include_str!("../tests/fixtures/htmls/062.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_063() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/063.md"),
-            include_str!("../tests/fixtures/htmls/063.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_064() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/064.md"),
-            include_str!("../tests/fixtures/htmls/064.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_067() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/067.md"),
-            include_str!("../tests/fixtures/htmls/067.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_068() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/068.md"),
-            include_str!("../tests/fixtures/htmls/068.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_070() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/070.md"),
-            include_str!("../tests/fixtures/htmls/070.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_071() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/071.md"),
-            include_str!("../tests/fixtures/htmls/071.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_072() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/072.md"),
-            include_str!("../tests/fixtures/htmls/072.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_073() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/073.md"),
-            include_str!("../tests/fixtures/htmls/073.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_074() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/074.md"),
-            include_str!("../tests/fixtures/htmls/074.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_077() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/077.md"),
-            include_str!("../tests/fixtures/htmls/077.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_078() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/078.md"),
-            include_str!("../tests/fixtures/htmls/078.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_079() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/079.md"),
-            include_str!("../tests/fixtures/htmls/079.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_219() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/219.md"),
-            include_str!("../tests/fixtures/htmls/219.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_220() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/220.md"),
-            include_str!("../tests/fixtures/htmls/220.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_221() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/221.md"),
-            include_str!("../tests/fixtures/htmls/221.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_222() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/222.md"),
-            include_str!("../tests/fixtures/htmls/222.html"),
-        );
-    }
-
-    #[test]
-    fn parse_example_223() {
-        assert_parse(
-            include_str!("../tests/fixtures/markdowns/223.md"),
-            include_str!("../tests/fixtures/htmls/223.html"),
-        );
-    }
+    fail!(example001, "001");
+    fail!(example002, "002");
+    fail!(example003, "003");
+    fail!(example004, "004");
+    fail!(example005, "005");
+    fail!(example006, "006");
+    fail!(example007, "007");
+    fail!(example008, "008");
+    fail!(example009, "009");
+    pass!(example010, "010");
+    pass!(example011, "011");
+    fail!(example012, "012");
+    pass!(example013, "013");
+    fail!(example014, "014");
+    fail!(example015, "015");
+    fail!(example016, "016");
+    fail!(example017, "017");
+    fail!(example018, "018");
+    fail!(example019, "019");
+    fail!(example020, "020");
+    fail!(example021, "021");
+    fail!(example022, "022");
+    fail!(example023, "023");
+    fail!(example024, "024");
+    fail!(example025, "025");
+    fail!(example026, "026");
+    fail!(example027, "027");
+    fail!(example028, "028");
+    fail!(example029, "029");
+    fail!(example030, "030");
+    fail!(example031, "031");
+    fail!(example032, "032");
+    fail!(example033, "033");
+    fail!(example034, "034");
+    fail!(example035, "035");
+    fail!(example036, "036");
+    fail!(example037, "037");
+    fail!(example038, "038");
+    fail!(example039, "039");
+    fail!(example040, "040");
+    pass!(example041, "041");
+    fail!(example042, "042");
+    pass!(example043, "043");
+    pass!(example044, "044");
+    pass!(example045, "045");
+    pass!(example046, "046");
+    pass!(example047, "047");
+    fail!(example048, "048");
+    pass!(example049, "049");
+    pass!(example050, "050");
+    pass!(example051, "051");
+    pass!(example052, "052");
+    pass!(example053, "053");
+    pass!(example054, "054");
+    pass!(example055, "055");
+    fail!(example056, "056");
+    fail!(example057, "057");
+    pass!(example058, "058");
+    fail!(example059, "059");
+    fail!(example060, "060");
+    fail!(example061, "061");
+    pass!(example062, "062");
+    pass!(example063, "063");
+    pass!(example064, "064");
+    fail!(example065, "065");
+    fail!(example066, "066");
+    pass!(example067, "067");
+    pass!(example068, "068");
+    fail!(example069, "069");
+    pass!(example070, "070");
+    pass!(example071, "071");
+    pass!(example072, "072");
+    pass!(example073, "073");
+    pass!(example074, "074");
+    fail!(example075, "075");
+    fail!(example076, "076");
+    pass!(example077, "077");
+    pass!(example078, "078");
+    pass!(example079, "079");
+    fail!(example080, "080");
+    fail!(example081, "081");
+    fail!(example082, "082");
+    fail!(example083, "083");
+    fail!(example084, "084");
+    fail!(example085, "085");
+    fail!(example086, "086");
+    pass!(example087, "087");
+    pass!(example088, "088");
+    fail!(example089, "089");
+    fail!(example090, "090");
+    fail!(example091, "091");
+    fail!(example092, "092");
+    fail!(example093, "093");
+    fail!(example094, "094");
+    fail!(example095, "095");
+    fail!(example096, "096");
+    pass!(example097, "097");
+    pass!(example098, "098");
+    fail!(example099, "099");
+    fail!(example100, "100");
+    fail!(example101, "101");
+    fail!(example102, "102");
+    fail!(example103, "103");
+    pass!(example104, "104");
+    pass!(example105, "105");
+    fail!(example106, "106");
+    fail!(example107, "107");
+    fail!(example108, "108");
+    fail!(example109, "109");
+    fail!(example110, "110");
+    fail!(example111, "111");
+    fail!(example112, "112");
+    pass!(example113, "113");
+    fail!(example114, "114");
+    fail!(example115, "115");
+    fail!(example116, "116");
+    fail!(example117, "117");
+    fail!(example118, "118");
+    fail!(example119, "119");
+    fail!(example120, "120");
+    fail!(example121, "121");
+    fail!(example122, "122");
+    fail!(example123, "123");
+    fail!(example124, "124");
+    fail!(example125, "125");
+    fail!(example126, "126");
+    fail!(example127, "127");
+    fail!(example128, "128");
+    fail!(example129, "129");
+    fail!(example130, "130");
+    fail!(example131, "131");
+    fail!(example132, "132");
+    fail!(example133, "133");
+    fail!(example134, "134");
+    fail!(example135, "135");
+    fail!(example136, "136");
+    fail!(example137, "137");
+    fail!(example138, "138");
+    fail!(example139, "139");
+    fail!(example140, "140");
+    fail!(example141, "141");
+    fail!(example142, "142");
+    fail!(example143, "143");
+    fail!(example144, "144");
+    fail!(example145, "145");
+    fail!(example146, "146");
+    fail!(example147, "147");
+    fail!(example148, "148");
+    fail!(example149, "149");
+    fail!(example150, "150");
+    fail!(example151, "151");
+    fail!(example152, "152");
+    fail!(example153, "153");
+    fail!(example154, "154");
+    fail!(example155, "155");
+    fail!(example156, "156");
+    fail!(example157, "157");
+    fail!(example158, "158");
+    fail!(example159, "159");
+    fail!(example160, "160");
+    fail!(example161, "161");
+    fail!(example162, "162");
+    fail!(example163, "163");
+    fail!(example164, "164");
+    fail!(example165, "165");
+    fail!(example166, "166");
+    fail!(example167, "167");
+    fail!(example168, "168");
+    fail!(example169, "169");
+    fail!(example170, "170");
+    fail!(example171, "171");
+    fail!(example172, "172");
+    fail!(example173, "173");
+    fail!(example174, "174");
+    fail!(example175, "175");
+    fail!(example176, "176");
+    fail!(example177, "177");
+    fail!(example178, "178");
+    fail!(example179, "179");
+    fail!(example180, "180");
+    fail!(example181, "181");
+    fail!(example182, "182");
+    fail!(example183, "183");
+    fail!(example184, "184");
+    fail!(example185, "185");
+    fail!(example186, "186");
+    pass!(example187, "187");
+    fail!(example188, "188");
+    fail!(example189, "189");
+    fail!(example190, "190");
+    fail!(example191, "191");
+    fail!(example192, "192");
+    fail!(example193, "193");
+    fail!(example194, "194");
+    fail!(example195, "195");
+    fail!(example196, "196");
+    pass!(example197, "197");
+    fail!(example198, "198");
+    pass!(example199, "199");
+    fail!(example200, "200");
+    pass!(example201, "201");
+    fail!(example202, "202");
+    fail!(example203, "203");
+    fail!(example204, "204");
+    fail!(example205, "205");
+    fail!(example206, "206");
+    fail!(example207, "207");
+    fail!(example208, "208");
+    fail!(example209, "209");
+    fail!(example210, "210");
+    fail!(example211, "211");
+    fail!(example212, "212");
+    pass!(example213, "213");
+    fail!(example214, "214");
+    fail!(example215, "215");
+    fail!(example216, "216");
+    fail!(example217, "217");
+    fail!(example218, "218");
+    pass!(example219, "219");
+    pass!(example220, "220");
+    pass!(example221, "221");
+    pass!(example222, "222");
+    pass!(example223, "223");
+    pass!(example224, "224");
+    fail!(example225, "225");
+    fail!(example226, "226");
+    fail!(example227, "227");
+    fail!(example228, "228");
+    fail!(example229, "229");
+    fail!(example230, "230");
+    fail!(example231, "231");
+    fail!(example232, "232");
+    fail!(example233, "233");
+    fail!(example234, "234");
+    fail!(example235, "235");
+    fail!(example236, "236");
+    fail!(example237, "237");
+    fail!(example238, "238");
+    fail!(example239, "239");
+    fail!(example240, "240");
+    fail!(example241, "241");
+    fail!(example242, "242");
+    fail!(example243, "243");
+    fail!(example244, "244");
+    fail!(example245, "245");
+    fail!(example246, "246");
+    fail!(example247, "247");
+    fail!(example248, "248");
+    fail!(example249, "249");
+    fail!(example250, "250");
+    fail!(example251, "251");
+    fail!(example252, "252");
+    fail!(example253, "253");
+    fail!(example254, "254");
+    fail!(example255, "255");
+    fail!(example256, "256");
+    fail!(example257, "257");
+    fail!(example258, "258");
+    fail!(example259, "259");
+    fail!(example260, "260");
+    pass!(example261, "261");
+    fail!(example262, "262");
+    fail!(example263, "263");
+    fail!(example264, "264");
+    fail!(example265, "265");
+    pass!(example266, "266");
+    fail!(example267, "267");
+    fail!(example268, "268");
+    pass!(example269, "269");
+    fail!(example270, "270");
+    fail!(example271, "271");
+    fail!(example272, "272");
+    fail!(example273, "273");
+    fail!(example274, "274");
+    pass!(example275, "275");
+    fail!(example276, "276");
+    fail!(example277, "277");
+    fail!(example278, "278");
+    fail!(example279, "279");
+    fail!(example280, "280");
+    fail!(example281, "281");
+    fail!(example282, "282");
+    fail!(example283, "283");
+    fail!(example284, "284");
+    pass!(example285, "285");
+    fail!(example286, "286");
+    fail!(example287, "287");
+    fail!(example288, "288");
+    fail!(example289, "289");
+    fail!(example290, "290");
+    fail!(example291, "291");
+    fail!(example292, "292");
+    fail!(example293, "293");
+    fail!(example294, "294");
+    fail!(example295, "295");
+    fail!(example296, "296");
+    fail!(example297, "297");
+    fail!(example298, "298");
+    fail!(example299, "299");
+    fail!(example300, "300");
+    fail!(example301, "301");
+    fail!(example302, "302");
+    fail!(example303, "303");
+    pass!(example304, "304");
+    fail!(example305, "305");
+    fail!(example306, "306");
+    fail!(example307, "307");
+    fail!(example308, "308");
+    fail!(example309, "309");
+    fail!(example310, "310");
+    fail!(example311, "311");
+    fail!(example312, "312");
+    fail!(example313, "313");
+    fail!(example314, "314");
+    fail!(example315, "315");
+    fail!(example316, "316");
+    fail!(example317, "317");
+    fail!(example318, "318");
+    fail!(example319, "319");
+    fail!(example320, "320");
+    fail!(example321, "321");
+    fail!(example322, "322");
+    fail!(example323, "323");
+    fail!(example324, "324");
+    fail!(example325, "325");
+    fail!(example326, "326");
+    fail!(example327, "327");
+    fail!(example328, "328");
+    fail!(example329, "329");
+    fail!(example330, "330");
+    fail!(example331, "331");
+    fail!(example332, "332");
+    fail!(example333, "333");
+    fail!(example334, "334");
+    fail!(example335, "335");
+    fail!(example336, "336");
+    fail!(example337, "337");
+    fail!(example338, "338");
+    fail!(example339, "339");
+    fail!(example340, "340");
+    fail!(example341, "341");
+    fail!(example342, "342");
+    fail!(example343, "343");
+    pass!(example344, "344");
+    fail!(example345, "345");
+    fail!(example346, "346");
+    pass!(example347, "347");
+    pass!(example348, "348");
+    fail!(example349, "349");
+    fail!(example350, "350");
+    pass!(example351, "351");
+    fail!(example352, "352");
+    pass!(example353, "353");
+    fail!(example354, "354");
+    fail!(example355, "355");
+    fail!(example356, "356");
+    pass!(example357, "357");
+    fail!(example358, "358");
+    pass!(example359, "359");
+    pass!(example360, "360");
+    pass!(example361, "361");
+    fail!(example362, "362");
+    fail!(example363, "363");
+    pass!(example364, "364");
+    pass!(example365, "365");
+    pass!(example366, "366");
+    pass!(example367, "367");
+    fail!(example368, "368");
+    fail!(example369, "369");
+    pass!(example370, "370");
+    pass!(example371, "371");
+    fail!(example372, "372");
+    pass!(example373, "373");
+    pass!(example374, "374");
+    fail!(example375, "375");
+    fail!(example376, "376");
+    fail!(example377, "377");
+    pass!(example378, "378");
+    fail!(example379, "379");
+    fail!(example380, "380");
+    fail!(example381, "381");
+    pass!(example382, "382");
+    pass!(example383, "383");
+    fail!(example384, "384");
+    pass!(example385, "385");
+    pass!(example386, "386");
+    pass!(example387, "387");
+    fail!(example388, "388");
+    fail!(example389, "389");
+    pass!(example390, "390");
+    pass!(example391, "391");
+    fail!(example392, "392");
+    fail!(example393, "393");
+    fail!(example394, "394");
+    fail!(example395, "395");
+    pass!(example396, "396");
+    pass!(example397, "397");
+    fail!(example398, "398");
+    pass!(example399, "399");
+    pass!(example400, "400");
+    fail!(example401, "401");
+    fail!(example402, "402");
+    fail!(example403, "403");
+    fail!(example404, "404");
+    fail!(example405, "405");
+    fail!(example406, "406");
+    fail!(example407, "407");
+    fail!(example408, "408");
+    fail!(example409, "409");
+    fail!(example410, "410");
+    fail!(example411, "411");
+    fail!(example412, "412");
+    fail!(example413, "413");
+    fail!(example414, "414");
+    fail!(example415, "415");
+    fail!(example416, "416");
+    fail!(example417, "417");
+    fail!(example418, "418");
+    pass!(example419, "419");
+    pass!(example420, "420");
+    fail!(example421, "421");
+    fail!(example422, "422");
+    fail!(example423, "423");
+    fail!(example424, "424");
+    fail!(example425, "425");
+    fail!(example426, "426");
+    fail!(example427, "427");
+    fail!(example428, "428");
+    fail!(example429, "429");
+    fail!(example430, "430");
+    fail!(example431, "431");
+    fail!(example432, "432");
+    pass!(example433, "433");
+    pass!(example434, "434");
+    pass!(example435, "435");
+    fail!(example436, "436");
+    fail!(example437, "437");
+    pass!(example438, "438");
+    fail!(example439, "439");
+    fail!(example440, "440");
+    fail!(example441, "441");
+    fail!(example442, "442");
+    fail!(example443, "443");
+    fail!(example444, "444");
+    fail!(example445, "445");
+    fail!(example446, "446");
+    pass!(example447, "447");
+    fail!(example448, "448");
+    fail!(example449, "449");
+    pass!(example450, "450");
+    fail!(example451, "451");
+    fail!(example452, "452");
+    fail!(example453, "453");
+    fail!(example454, "454");
+    fail!(example455, "455");
+    fail!(example456, "456");
+    fail!(example457, "457");
+    fail!(example458, "458");
+    fail!(example459, "459");
+    fail!(example460, "460");
+    fail!(example461, "461");
+    fail!(example462, "462");
+    fail!(example463, "463");
+    fail!(example464, "464");
+    fail!(example465, "465");
+    fail!(example466, "466");
+    fail!(example467, "467");
+    fail!(example468, "468");
+    fail!(example469, "469");
+    fail!(example470, "470");
+    fail!(example471, "471");
+    fail!(example472, "472");
+    fail!(example473, "473");
+    pass!(example474, "474");
+    pass!(example475, "475");
+    pass!(example476, "476");
+    fail!(example477, "477");
+    fail!(example478, "478");
+    fail!(example479, "479");
+    fail!(example480, "480");
+    fail!(example481, "481");
+    fail!(example482, "482");
+    fail!(example483, "483");
+    fail!(example484, "484");
+    fail!(example485, "485");
+    fail!(example486, "486");
+    pass!(example487, "487");
+    fail!(example488, "488");
+    pass!(example489, "489");
+    pass!(example490, "490");
+    fail!(example491, "491");
+    fail!(example492, "492");
+    fail!(example493, "493");
+    fail!(example494, "494");
+    fail!(example495, "495");
+    pass!(example496, "496");
+    fail!(example497, "497");
+    fail!(example498, "498");
+    fail!(example499, "499");
+    fail!(example500, "500");
+    fail!(example501, "501");
+    fail!(example502, "502");
+    fail!(example503, "503");
+    fail!(example504, "504");
+    fail!(example505, "505");
+    fail!(example506, "506");
+    fail!(example507, "507");
+    fail!(example508, "508");
+    fail!(example509, "509");
+    pass!(example510, "510");
+    fail!(example511, "511");
+    pass!(example512, "512");
+    fail!(example513, "513");
+    fail!(example514, "514");
+    fail!(example515, "515");
+    fail!(example516, "516");
+    fail!(example517, "517");
+    fail!(example518, "518");
+    fail!(example519, "519");
+    fail!(example520, "520");
+    fail!(example521, "521");
+    fail!(example522, "522");
+    pass!(example523, "523");
+    fail!(example524, "524");
+    fail!(example525, "525");
+    fail!(example526, "526");
+    fail!(example527, "527");
+    fail!(example528, "528");
+    fail!(example529, "529");
+    fail!(example530, "530");
+    fail!(example531, "531");
+    fail!(example532, "532");
+    fail!(example533, "533");
+    fail!(example534, "534");
+    fail!(example535, "535");
+    fail!(example536, "536");
+    fail!(example537, "537");
+    fail!(example538, "538");
+    fail!(example539, "539");
+    fail!(example540, "540");
+    fail!(example541, "541");
+    fail!(example542, "542");
+    fail!(example543, "543");
+    fail!(example544, "544");
+    pass!(example545, "545");
+    pass!(example546, "546");
+    pass!(example547, "547");
+    fail!(example548, "548");
+    fail!(example549, "549");
+    pass!(example550, "550");
+    pass!(example551, "551");
+    fail!(example552, "552");
+    fail!(example553, "553");
+    fail!(example554, "554");
+    fail!(example555, "555");
+    fail!(example556, "556");
+    fail!(example557, "557");
+    fail!(example558, "558");
+    fail!(example559, "559");
+    fail!(example560, "560");
+    fail!(example561, "561");
+    fail!(example562, "562");
+    fail!(example563, "563");
+    fail!(example564, "564");
+    fail!(example565, "565");
+    fail!(example566, "566");
+    fail!(example567, "567");
+    fail!(example568, "568");
+    fail!(example569, "569");
+    fail!(example570, "570");
+    fail!(example571, "571");
+    fail!(example572, "572");
+    fail!(example573, "573");
+    fail!(example574, "574");
+    fail!(example575, "575");
+    fail!(example576, "576");
+    fail!(example577, "577");
+    fail!(example578, "578");
+    fail!(example579, "579");
+    fail!(example580, "580");
+    fail!(example581, "581");
+    fail!(example582, "582");
+    fail!(example583, "583");
+    fail!(example584, "584");
+    fail!(example585, "585");
+    fail!(example586, "586");
+    fail!(example587, "587");
+    fail!(example588, "588");
+    fail!(example589, "589");
+    fail!(example590, "590");
+    fail!(example591, "591");
+    fail!(example592, "592");
+    fail!(example593, "593");
+    fail!(example594, "594");
+    fail!(example595, "595");
+    fail!(example596, "596");
+    fail!(example597, "597");
+    fail!(example598, "598");
+    fail!(example599, "599");
+    fail!(example600, "600");
+    fail!(example601, "601");
+    fail!(example602, "602");
+    fail!(example603, "603");
+    fail!(example604, "604");
+    fail!(example605, "605");
+    fail!(example606, "606");
+    fail!(example607, "607");
+    fail!(example608, "608");
+    fail!(example609, "609");
+    pass!(example610, "610");
+    pass!(example611, "611");
+    pass!(example612, "612");
+    pass!(example613, "613");
+    pass!(example614, "614");
+    pass!(example615, "615");
+    pass!(example616, "616");
+    fail!(example617, "617");
+    fail!(example618, "618");
+    fail!(example619, "619");
+    fail!(example620, "620");
+    fail!(example621, "621");
+    pass!(example622, "622");
+    fail!(example623, "623");
+    pass!(example624, "624");
+    fail!(example625, "625");
+    fail!(example626, "626");
+    pass!(example627, "627");
+    pass!(example628, "628");
+    pass!(example629, "629");
+    pass!(example630, "630");
+    pass!(example631, "631");
+    fail!(example632, "632");
+    fail!(example633, "633");
+    fail!(example634, "634");
+    fail!(example635, "635");
+    fail!(example636, "636");
+    fail!(example637, "637");
+    fail!(example638, "638");
+    fail!(example639, "639");
+    fail!(example640, "640");
+    fail!(example641, "641");
+    pass!(example642, "642");
+    pass!(example643, "643");
+    pass!(example644, "644");
+    fail!(example645, "645");
+    pass!(example646, "646");
+    pass!(example647, "647");
+    pass!(example648, "648");
+    fail!(example649, "649");
+    pass!(example650, "650");
+    pass!(example651, "651");
+    pass!(example652, "652");
 }
