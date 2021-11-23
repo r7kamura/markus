@@ -59,6 +59,14 @@ mod tests {
     }
 
     #[test]
+    fn parse_example_049() {
+        assert_parse(
+            include_str!("../tests/fixtures/markdowns/049.md"),
+            include_str!("../tests/fixtures/htmls/049.html"),
+        );
+    }
+
+    #[test]
     fn parse_example_050() {
         assert_parse(
             include_str!("../tests/fixtures/markdowns/050.md"),
@@ -107,6 +115,14 @@ mod tests {
     }
 
     #[test]
+    fn parse_example_058() {
+        assert_parse(
+            include_str!("../tests/fixtures/markdowns/058.md"),
+            include_str!("../tests/fixtures/htmls/058.html"),
+        );
+    }
+
+    #[test]
     fn parse_example_062() {
         assert_parse(
             include_str!("../tests/fixtures/markdowns/062.md"),
@@ -143,6 +159,70 @@ mod tests {
         assert_parse(
             include_str!("../tests/fixtures/markdowns/068.md"),
             include_str!("../tests/fixtures/htmls/068.html"),
+        );
+    }
+
+    #[test]
+    fn parse_example_070() {
+        assert_parse(
+            include_str!("../tests/fixtures/markdowns/070.md"),
+            include_str!("../tests/fixtures/htmls/070.html"),
+        );
+    }
+
+    #[test]
+    fn parse_example_071() {
+        assert_parse(
+            include_str!("../tests/fixtures/markdowns/071.md"),
+            include_str!("../tests/fixtures/htmls/071.html"),
+        );
+    }
+
+    #[test]
+    fn parse_example_072() {
+        assert_parse(
+            include_str!("../tests/fixtures/markdowns/072.md"),
+            include_str!("../tests/fixtures/htmls/072.html"),
+        );
+    }
+
+    #[test]
+    fn parse_example_073() {
+        assert_parse(
+            include_str!("../tests/fixtures/markdowns/073.md"),
+            include_str!("../tests/fixtures/htmls/073.html"),
+        );
+    }
+
+    #[test]
+    fn parse_example_074() {
+        assert_parse(
+            include_str!("../tests/fixtures/markdowns/074.md"),
+            include_str!("../tests/fixtures/htmls/074.html"),
+        );
+    }
+
+    #[test]
+    fn parse_example_077() {
+        assert_parse(
+            include_str!("../tests/fixtures/markdowns/077.md"),
+            include_str!("../tests/fixtures/htmls/077.html"),
+        );
+    }
+
+    #[test]
+    fn parse_example_078() {
+        assert_parse(
+            include_str!("../tests/fixtures/markdowns/078.md"),
+            include_str!("../tests/fixtures/htmls/078.html"),
+        );
+    }
+
+    #[test]
+    fn parse_example_079() {
+        assert_parse(
+            include_str!("../tests/fixtures/markdowns/079.md"),
+            include_str!("../tests/fixtures/htmls/079.html"),
         );
     }
 
