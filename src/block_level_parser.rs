@@ -87,7 +87,6 @@ impl<'a> Parser<'a> {
         });
         self.tree.go_to_child();
 
-        index = self.parse_non_line_ending_whitespaces(index);
         index += level as usize;
         index = self.parse_non_line_ending_whitespaces(index);
         index = self.parse_line(index);
