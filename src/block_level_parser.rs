@@ -27,7 +27,13 @@ impl<'a> Parser<'a> {
         while index < self.text.len() {
             if let Some(length) = self.scan_line_ending(index) {
                 index += length;
-            } else if let Some(length) = self.scan_thematic_break(index) {
+                continue;
+            }
+
+            // TODO: Consider 4 spaces indented code block.
+            index = self.parse_spaces_or_tabs(index);
+
+            if let Some(length) = self.scan_thematic_break(index) {
                 index = self.parse_thematic_break(index, length);
             } else if let Some(level) = self.scan_atx_heading(index) {
                 index = self.parse_atx_heading(index, level);

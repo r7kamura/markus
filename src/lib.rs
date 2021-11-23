@@ -171,6 +171,14 @@ mod tests {
     }
 
     #[test]
+    fn parse_example_222() {
+        assert_parse(
+            include_str!("../tests/fixtures/markdowns/222.md"),
+            include_str!("../tests/fixtures/htmls/222.html"),
+        );
+    }
+
+    #[test]
     fn parse_example_223() {
         assert_parse(
             include_str!("../tests/fixtures/markdowns/223.md"),

@@ -5,6 +5,7 @@
 ### Fixed
 
 - Skip leading spaces or tabs in paragraph.
+- Skip leading spaces or tabs of block.
 
 ## 0.4.0 - 2021-11-23
 
