@@ -82,6 +82,7 @@ impl<'a> Parser<'a> {
                 }
                 break;
             }
+            index = self.parse_spaces_or_tabs(index);
         }
 
         self.tree.go_to_parent();
@@ -151,6 +152,16 @@ impl<'a> Parser<'a> {
         } else {
             None
         }
+    }
+
+    /// Parse 0 or more spaces or tabs, and return index after parse.
+    fn parse_spaces_or_tabs(&self, index: usize) -> usize {
+        index
+            + self.text[index..]
+                .as_bytes()
+                .iter()
+                .take_while(|&&byte| byte == b' ' || byte == b'\t')
+                .count()
     }
 
     /// Parse 0 or more non line ending whitespaces, and return index after parse.

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Skip leading spaces or tabs in paragraph.
+
 ## 0.4.0 - 2021-11-23
 
 ### Added
