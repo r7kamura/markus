@@ -196,7 +196,7 @@ impl<'a> Parser<'a> {
                 .count()
     }
 
-    /// Parse 0 to 3 spaces, and return index after parse.
+    /// Parse spaces, and return index after parse.
     fn parse_spaces(&self, index: usize) -> usize {
         index
             + self.text[index..]
