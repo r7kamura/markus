@@ -102,14 +102,21 @@ impl<'a> Parser<'a> {
                 .iter()
                 .rposition(|&byte| byte != b' ' && byte != b'\t')
                 .map_or(0, |i| i + 1);
-            tail = header_text[..tail]
+            let tail2 = header_text[..tail]
                 .iter()
                 .rposition(|&byte| byte != b'#')
                 .map_or(0, |i| i + 1);
-            tail = header_text[..tail]
-                .iter()
-                .rposition(|&byte| byte != b' ' && byte != b'\t')
-                .map_or(0, |i| i + 1);
+            if tail2 == 0 {
+                tail = tail2;
+            } else {
+                let tail3 = header_text[..tail2]
+                    .iter()
+                    .rposition(|&byte| byte != b' ' && byte != b'\t')
+                    .map_or(0, |i| i + 1);
+                if tail2 != tail3 {
+                    tail = tail3
+                }
+            }
             self.tree.nodes[node_index].item.end = item.begin + tail - 1;
             if tail == 0 {
                 self.tree.nodes[*self.tree.ancestors.last().unwrap()].child = None;

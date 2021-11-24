@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- No skip non-space-prefixed enclosing sequence at ATX heading.
+
 ## 0.4.1 - 2021-11-23
 
 ### Fixed

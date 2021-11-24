@@ -122,7 +122,7 @@ mod tests {
     pass!(example072, "072");
     pass!(example073, "073");
     pass!(example074, "074");
-    fail!(example075, "075");
+    pass!(example075, "075");
     fail!(example076, "076");
     pass!(example077, "077");
     pass!(example078, "078");
