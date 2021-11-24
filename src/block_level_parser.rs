@@ -38,7 +38,7 @@ impl<'a> Parser<'a> {
             } else if let Some(level) = self.scan_atx_heading(index) {
                 index = self.parse_atx_heading(index, level);
             } else {
-                index = self.parse_paragraph(index);
+                index = self.parse_setext_heading_or_paragraph(index);
             }
         }
 
@@ -46,17 +46,43 @@ impl<'a> Parser<'a> {
         self.tree
     }
 
-    /// Parse one paragraph from given index, and return index after the paragraph.
-    fn parse_paragraph(&mut self, mut index: usize) -> usize {
+    /// Parse setext heading or paragraph from given index, and return index after parse.
+    fn parse_setext_heading_or_paragraph(&mut self, mut index: usize) -> usize {
         self.tree.append(Block {
             begin: index,
             end: 0, // This dummy value will be fixed at the end of this function.
-            kind: BlockKind::Paragraph,
+            kind: BlockKind::Paragraph, // Maybe paragraph, but maybe setext heading.
         });
         self.tree.go_to_child();
 
         loop {
+            index = self.parse_spaces_or_tabs(index);
             index = self.parse_line(index);
+
+            // Skip interrupt if 4 spaces indent is detected.
+            let new_index = self.parse_spaces(index);
+            if new_index - index == 4 {
+                continue;
+            }
+            index = new_index;
+
+            if let Some((length, level)) = self.scan_setext_heading(index) {
+                index += length;
+                self.tree.nodes[*self.tree.ancestors.last().unwrap()]
+                    .item
+                    .kind = BlockKind::Heading(level);
+                if let Some(node_index) = self.tree.current {
+                    let item = self.tree.nodes[node_index].item;
+                    let text = &self.text.as_bytes()[..item.end];
+                    let tail = text
+                        .iter()
+                        .rposition(|&byte| !is_non_line_ending_whitespaces(byte))
+                        .unwrap_or(0);
+                    self.tree.nodes[node_index].item.end = tail;
+                }
+                break;
+            }
+
             if self.scan_paragraph_interrupt(index) {
                 if let Some(node_index) = self.tree.current {
                     let item = self.tree.nodes[node_index].item;
@@ -70,7 +96,6 @@ impl<'a> Parser<'a> {
                 }
                 break;
             }
-            index = self.parse_spaces_or_tabs(index);
         }
 
         self.tree.go_to_parent();
@@ -144,7 +169,11 @@ impl<'a> Parser<'a> {
         if index >= self.text.len() {
             return index;
         }
-        let end = if let Some(i) = self.text[index..].find(is_line_ending) {
+        let end = if let Some(i) = self.text[index..]
+            .as_bytes()
+            .iter()
+            .position(|&byte| is_line_ending(byte))
+        {
             index + i
         } else {
             self.text.len() - 1
@@ -167,13 +196,23 @@ impl<'a> Parser<'a> {
                 .count()
     }
 
+    /// Parse 0 to 3 spaces, and return index after parse.
+    fn parse_spaces(&self, index: usize) -> usize {
+        index
+            + self.text[index..]
+                .as_bytes()
+                .iter()
+                .take_while(|&&byte| byte == b' ')
+                .count()
+    }
+
     /// Parse 0 or more non line ending whitespaces, and return index after parse.
     fn parse_non_line_ending_whitespaces(&self, index: usize) -> usize {
         index
             + self.text[index..]
                 .as_bytes()
                 .iter()
-                .take_while(|&&byte| byte == b'\t' || byte == 0x0b || byte == 0x0c || byte == b' ')
+                .take_while(|&&byte| is_non_line_ending_whitespaces(byte))
                 .count()
     }
 
@@ -195,6 +234,23 @@ impl<'a> Parser<'a> {
         } else {
             None
         }
+    }
+
+    /// Check if setext heading underline starts from given index, and returns its heading level and length if found (including line ending).
+    fn scan_setext_heading(&self, index: usize) -> Option<(usize, HeadingLevel)> {
+        let bytes = &self.text.as_bytes()[index..];
+        let byte = *bytes.get(0)?;
+        if byte != b'=' && byte != b'-' {
+            return None;
+        }
+        let mut length = 1 + bytes[1..].iter().take_while(|&&b| b == byte).count();
+        length += self.scan_blank_line(index + length)?;
+        let level = if byte == b'=' {
+            HeadingLevel::H1
+        } else {
+            HeadingLevel::H2
+        };
+        Some((length, level))
     }
 
     /// Check if thematic break starts from given index, and return its length if found, which includes possible line ending.
@@ -263,8 +319,19 @@ impl<'a> Parser<'a> {
             _ => None,
         }
     }
+
+    /// Check if a series of whitespaces and a line ending starts from given index, and return its length.
+    fn scan_blank_line(&self, index: usize) -> Option<usize> {
+        let new_index = self.parse_non_line_ending_whitespaces(index);
+        self.scan_line_ending(new_index)
+            .map(|length| new_index - index + length)
+    }
 }
 
-fn is_line_ending(c: char) -> bool {
-    c == '\n' || c == '\r'
+fn is_line_ending(byte: u8) -> bool {
+    byte == b'\n' || byte == b'\r'
+}
+
+fn is_non_line_ending_whitespaces(byte: u8) -> bool {
+    byte == b'\t' || byte == 0x0b || byte == 0x0c || byte == b' '
 }

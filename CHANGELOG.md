@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Support setext headings.
+
 ### Fixed
 
 - No skip non-space-prefixed enclosing sequence at ATX heading.
