@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.0 - 2021-11-25
+
 ### Added
 
 - Support setext headings.
