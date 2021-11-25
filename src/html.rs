@@ -10,19 +10,19 @@ where
     for event in iterator {
         match event {
             Begin(tag) => match tag {
-                Paragraph => {
-                    writer.push_str("<p>");
-                }
                 Heading(level) => {
                     writer.push_str(&format!("<h{}>", level as usize));
                 }
+                Paragraph => {
+                    writer.push_str("<p>");
+                }
             },
             End(tag) => match tag {
-                Paragraph => {
-                    writer.push_str("</p>\n");
-                }
                 Heading(level) => {
                     writer.push_str(&format!("</h{}>\n", level as usize));
+                }
+                Paragraph => {
+                    writer.push_str("</p>\n");
                 }
             },
             Text(value) => {
