@@ -25,14 +25,17 @@ impl<'a> Parser<'a> {
     fn run(mut self) -> Tree<Block> {
         let mut index = 0;
         while index < self.text.len() {
-            if let Some(length) = self.scan_line_ending(index) {
+            if let Some(length) = self.scan_blank_line(index) {
                 index += length;
                 continue;
             }
 
-            // TODO: Consider 4 spaces indented code block.
-            index = self.parse_spaces_or_tabs(index);
+            if self.scan_indent_4(index) {
+                index = self.parse_indented_code_block(index);
+                continue;
+            }
 
+            index = self.parse_spaces_or_tabs(index);
             if let Some(length) = self.scan_thematic_break(index) {
                 index = self.parse_thematic_break(index, length);
             } else if let Some(level) = self.scan_atx_heading(index) {
@@ -44,6 +47,38 @@ impl<'a> Parser<'a> {
 
         self.tree.go_to_first();
         self.tree
+    }
+
+    /// Parse indented code block from given index, and return index after parse.
+    fn parse_indented_code_block(&mut self, mut index: usize) -> usize {
+        self.tree.append(Block {
+            begin: index,
+            end: 0, // Dummy
+            kind: BlockKind::IndentedCodeBlock,
+        });
+        self.tree.go_to_child();
+
+        let mut last_non_blank_node = None;
+        let mut is_non_blank;
+        while index < self.text.len() {
+            is_non_blank = self.scan_blank_line(index).is_none();
+            index = self.parse_indent_0_to_4(index);
+            index = self.parse_line(index);
+            if is_non_blank {
+                last_non_blank_node = self.tree.current;
+            }
+            if !self.scan_indent_4(index) && self.scan_blank_line(index).is_none() {
+                break;
+            }
+        }
+        if let Some(node_index) = last_non_blank_node {
+            self.tree.nodes[node_index].next = None;
+            self.tree.current = last_non_blank_node;
+        }
+
+        self.tree.go_to_parent();
+        self.tree.nodes[self.tree.current.unwrap()].item.end = index - 1; // Fix dummy value.
+        index
     }
 
     /// Parse setext heading or paragraph from given index, and return index after parse.
@@ -186,6 +221,29 @@ impl<'a> Parser<'a> {
         end + 1
     }
 
+    /// Parse 0 to 4 level indent, and return index after parse.
+    fn parse_indent_0_to_4(&self, index: usize) -> usize {
+        let bytes = &self.text[index..].as_bytes();
+        let mut i = 0;
+        let mut level = 0;
+        while i < bytes.len() {
+            match bytes[i] {
+                b' ' => {
+                    level += 1;
+                }
+                b'\t' => {
+                    level += 4 - i % 4;
+                }
+                _ => break,
+            }
+            if level > 4 {
+                break;
+            }
+            i += 1;
+        }
+        index + i
+    }
+
     /// Parse 0 or more spaces or tabs, and return index after parse.
     fn parse_spaces_or_tabs(&self, index: usize) -> usize {
         index
@@ -325,6 +383,27 @@ impl<'a> Parser<'a> {
         let new_index = self.parse_non_line_ending_whitespaces(index);
         self.scan_line_ending(new_index)
             .map(|length| new_index - index + length)
+    }
+
+    /// Check if 4 level indent starts from given index.
+    fn scan_indent_4(&self, index: usize) -> bool {
+        let bytes = &self.text[index..].as_bytes();
+        let mut i = 0;
+        let mut level = 0;
+        while level < 4 && i < bytes.len() {
+            match bytes[i] {
+                b' ' => {
+                    i += 1;
+                    level += 1;
+                }
+                b'\t' => {
+                    i += 1;
+                    level += 4 - i % 4;
+                }
+                _ => break,
+            }
+        }
+        level == 4
     }
 }
 

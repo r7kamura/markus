@@ -10,6 +10,7 @@ pub struct Block {
 #[derive(Clone, Copy, Debug)]
 pub enum BlockKind {
     Heading(HeadingLevel),
+    IndentedCodeBlock,
     Paragraph,
     Text,
     ThematicBreak,
