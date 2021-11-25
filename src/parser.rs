@@ -30,6 +30,10 @@ impl<'a> Iterator for Parser<'a> {
                         self.tree.go_to_child();
                         Some(Event::Begin(Tag::Heading(level)))
                     }
+                    BlockKind::IndentedCodeBlock => {
+                        self.tree.go_to_child();
+                        Some(Event::Begin(Tag::IndentedCodeBlock))
+                    }
                     BlockKind::Paragraph => {
                         self.tree.go_to_child();
                         Some(Event::Begin(Tag::Paragraph))
@@ -48,6 +52,7 @@ impl<'a> Iterator for Parser<'a> {
                 self.tree.go_to_parent();
                 let index = self.tree.current?;
                 let event = match self.tree.nodes[index].item.kind {
+                    BlockKind::IndentedCodeBlock => Some(Event::End(Tag::IndentedCodeBlock)),
                     BlockKind::Heading(level) => Some(Event::End(Tag::Heading(level))),
                     BlockKind::Paragraph => Some(Event::End(Tag::Paragraph)),
                     _ => panic!("Unexpected node is found as a parent."),

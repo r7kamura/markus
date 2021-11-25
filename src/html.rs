@@ -13,6 +13,9 @@ where
                 Heading(level) => {
                     writer.push_str(&format!("<h{}>", level as usize));
                 }
+                IndentedCodeBlock => {
+                    writer.push_str("<pre><code>");
+                }
                 Paragraph => {
                     writer.push_str("<p>");
                 }
@@ -20,6 +23,9 @@ where
             End(tag) => match tag {
                 Heading(level) => {
                     writer.push_str(&format!("</h{}>\n", level as usize));
+                }
+                IndentedCodeBlock => {
+                    writer.push_str("</code></pre>\n");
                 }
                 Paragraph => {
                     writer.push_str("</p>\n");
