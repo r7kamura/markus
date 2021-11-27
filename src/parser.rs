@@ -5,7 +5,7 @@ use std::iter::Iterator;
 #[derive(Debug)]
 pub struct Parser<'a> {
     text: &'a str,
-    tree: Tree<Block>,
+    tree: Tree<Block<'a>>,
 }
 
 impl<'a> Parser<'a> {
@@ -26,6 +26,10 @@ impl<'a> Iterator for Parser<'a> {
             Some(index) => {
                 let node = self.tree.nodes[index];
                 match node.item.kind {
+                    BlockKind::FencedCodeBlock(info) => {
+                        self.tree.go_to_child();
+                        Some(Event::Begin(Tag::FencedCodeBlock(info)))
+                    }
                     BlockKind::Heading(level) => {
                         self.tree.go_to_child();
                         Some(Event::Begin(Tag::Heading(level)))
@@ -52,8 +56,11 @@ impl<'a> Iterator for Parser<'a> {
                 self.tree.go_to_parent();
                 let index = self.tree.current?;
                 let event = match self.tree.nodes[index].item.kind {
-                    BlockKind::IndentedCodeBlock => Some(Event::End(Tag::IndentedCodeBlock)),
+                    BlockKind::FencedCodeBlock(info) => {
+                        Some(Event::End(Tag::FencedCodeBlock(info)))
+                    }
                     BlockKind::Heading(level) => Some(Event::End(Tag::Heading(level))),
+                    BlockKind::IndentedCodeBlock => Some(Event::End(Tag::IndentedCodeBlock)),
                     BlockKind::Paragraph => Some(Event::End(Tag::Paragraph)),
                     _ => panic!("Unexpected node is found as a parent."),
                 };

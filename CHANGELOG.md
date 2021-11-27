@@ -5,6 +5,7 @@
 ### Added
 
 - Support indented code blocks.
+- Support fenced code blocks.
 
 ## 0.5.0 - 2021-11-25
 
