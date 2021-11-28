@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.6.0 - 2021-11-28
+
 ### Added
 
 - Support indented code blocks.
