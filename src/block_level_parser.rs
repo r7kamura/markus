@@ -3,15 +3,15 @@ use crate::types::{Block, BlockKind, HeadingLevel};
 use std::convert::TryFrom;
 
 /// Convert text into block-level tree.
-impl From<&str> for Tree<Block> {
-    fn from(text: &str) -> Self {
+impl<'a> From<&'a str> for Tree<Block<'a>> {
+    fn from(text: &'a str) -> Self {
         Parser::new(text).run()
     }
 }
 
 struct Parser<'a> {
     text: &'a str,
-    tree: Tree<Block>,
+    tree: Tree<Block<'a>>,
 }
 
 impl<'a> Parser<'a> {
@@ -22,7 +22,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn run(mut self) -> Tree<Block> {
+    fn run(mut self) -> Tree<Block<'a>> {
         let mut index = 0;
         while index < self.text.len() {
             if let Some(length) = self.scan_blank_line(index) {
@@ -30,7 +30,8 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            if self.scan_indent_4(index) {
+            let indent_level = self.scan_indent(index);
+            if indent_level == 4 {
                 index = self.parse_indented_code_block(index);
                 continue;
             }
@@ -40,6 +41,8 @@ impl<'a> Parser<'a> {
                 index = self.parse_thematic_break(index, length);
             } else if let Some(level) = self.scan_atx_heading(index) {
                 index = self.parse_atx_heading(index, level);
+            } else if let Some((length, byte)) = self.scan_openning_code_fence(index) {
+                index = self.parse_fenced_code_block(index, length, byte, indent_level);
             } else {
                 index = self.parse_setext_heading_or_paragraph(index);
             }
@@ -47,6 +50,49 @@ impl<'a> Parser<'a> {
 
         self.tree.go_to_first();
         self.tree
+    }
+
+    fn parse_fenced_code_block(
+        &mut self,
+        begin: usize,
+        length: usize,
+        byte: u8,
+        indent_level: usize,
+    ) -> usize {
+        let mut index = begin;
+        index += length;
+        index = self.parse_spaces(index);
+        let line_length = self.scan_line(index);
+        let info_begin = index;
+        let mut info_end = info_begin + line_length - 1; // TODO: Replace 1 with true line ending length.
+        info_end -= self.text.as_bytes()[info_begin..info_end]
+            .iter()
+            .rev()
+            .take_while(|&&b| is_non_line_ending_whitespaces(b))
+            .count();
+        let info = &self.text[info_begin..info_end];
+        self.tree.append(Block {
+            begin,
+            end: 0, // Dummy,
+            kind: BlockKind::FencedCodeBlock(info),
+        });
+        self.tree.go_to_child();
+
+        index += line_length;
+        loop {
+            let index_to_check_closing = self.parse_indent(index, 3);
+            if let Some(length) = self.scan_closing_code_fence(index_to_check_closing, byte, length)
+            {
+                index = index_to_check_closing + length;
+                break;
+            }
+            index = self.parse_indent(index, indent_level);
+            index = self.parse_line(index);
+        }
+
+        self.tree.go_to_parent();
+        self.tree.nodes[self.tree.current.unwrap()].item.end = index - 1; // Fix dummy value.
+        index
     }
 
     /// Parse indented code block from given index, and return index after parse.
@@ -62,12 +108,12 @@ impl<'a> Parser<'a> {
         let mut is_non_blank;
         while index < self.text.len() {
             is_non_blank = self.scan_blank_line(index).is_none();
-            index = self.parse_indent_0_to_4(index);
+            index = self.parse_indent(index, 4);
             index = self.parse_line(index);
             if is_non_blank {
                 last_non_blank_node = self.tree.current;
             }
-            if !self.scan_indent_4(index) && self.scan_blank_line(index).is_none() {
+            if self.scan_indent(index) != 4 && self.scan_blank_line(index).is_none() {
                 break;
             }
         }
@@ -221,8 +267,8 @@ impl<'a> Parser<'a> {
         end + 1
     }
 
-    /// Parse 0 to 4 level indent, and return index after parse.
-    fn parse_indent_0_to_4(&self, index: usize) -> usize {
+    /// Parse indent of given indent level, and return index after parse.
+    fn parse_indent(&self, index: usize, indent_level: usize) -> usize {
         let bytes = &self.text[index..].as_bytes();
         let mut i = 0;
         let mut level = 0;
@@ -236,7 +282,7 @@ impl<'a> Parser<'a> {
                 }
                 _ => break,
             }
-            if level > 4 {
+            if level > indent_level {
                 break;
             }
             i += 1;
@@ -272,6 +318,14 @@ impl<'a> Parser<'a> {
                 .iter()
                 .take_while(|&&byte| is_non_line_ending_whitespaces(byte))
                 .count()
+    }
+
+    fn scan_repeated_byte(&self, index: usize, byte: u8) -> usize {
+        let bytes = self.text[index..].as_bytes();
+        bytes
+            .iter()
+            .position(|&byte_| byte_ != byte)
+            .unwrap_or_else(|| self.text.len())
     }
 
     /// Check if ATX-style heading starts from given index, and return its level if found.
@@ -358,11 +412,48 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn scan_openning_code_fence(&self, index: usize) -> Option<(usize, u8)> {
+        let bytes = &self.text[index..].as_bytes();
+        let byte = *bytes.get(0)?;
+        if byte != b'`' && byte != b'~' {
+            return None;
+        }
+        let count = self.scan_repeated_byte(index, byte);
+        if count < 3 {
+            return None;
+        }
+        if byte == b'~' {
+            return Some((count, byte));
+        }
+        if bytes[count..(count + self.scan_line(index + count))]
+            .iter()
+            .any(|&b| b == b'`')
+        {
+            return None;
+        }
+        Some((count, byte))
+    }
+
+    fn scan_closing_code_fence(&self, index: usize, byte: u8, count: usize) -> Option<usize> {
+        let bytes = &self.text[index..].as_bytes();
+        if bytes.is_empty() {
+            return Some(0);
+        }
+        let count_found = self.scan_repeated_byte(index, byte);
+        if count_found < count {
+            return None;
+        }
+        let mut new_index = index + count_found;
+        new_index += self.scan_line_ending(new_index)?;
+        Some(new_index - index)
+    }
+
     /// Check if pargraph interrupt starts from given index.
     fn scan_paragraph_interrupt(&self, index: usize) -> bool {
         self.scan_line_ending(index).is_some()
             || self.scan_thematic_break(index).is_some()
             || self.scan_atx_heading(index).is_some()
+            || self.scan_openning_code_fence(index).is_some()
     }
 
     /// Check if line ending starts from given index, and return its length if found.
@@ -385,8 +476,8 @@ impl<'a> Parser<'a> {
             .map(|length| new_index - index + length)
     }
 
-    /// Check if 4 level indent starts from given index.
-    fn scan_indent_4(&self, index: usize) -> bool {
+    /// Return indent level (up to 4).
+    fn scan_indent(&self, index: usize) -> usize {
         let bytes = &self.text[index..].as_bytes();
         let mut i = 0;
         let mut level = 0;
@@ -403,7 +494,16 @@ impl<'a> Parser<'a> {
                 _ => break,
             }
         }
-        level == 4
+        level
+    }
+
+    fn scan_line(&self, index: usize) -> usize {
+        let bytes = &self.text[index..].as_bytes();
+        if let Some(i) = bytes.iter().position(|&byte| is_line_ending(byte)) {
+            i + self.scan_line_ending(index + i).unwrap()
+        } else {
+            bytes.len()
+        }
     }
 }
 
