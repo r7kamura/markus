@@ -11,6 +11,7 @@ pub struct Block<'a> {
 pub enum BlockKind<'a> {
     FencedCodeBlock(&'a str),
     Heading(HeadingLevel),
+    Html,
     IndentedCodeBlock,
     Paragraph,
     Text,

@@ -34,6 +34,10 @@ impl<'a> Iterator for Parser<'a> {
                         self.tree.go_to_child();
                         Some(Event::Begin(Tag::Heading(level)))
                     }
+                    BlockKind::Html => {
+                        self.tree.go_to_next_sibling();
+                        Some(Event::Text(&self.text[node.item.begin..node.item.end + 1]))
+                    }
                     BlockKind::IndentedCodeBlock => {
                         self.tree.go_to_child();
                         Some(Event::Begin(Tag::IndentedCodeBlock))
