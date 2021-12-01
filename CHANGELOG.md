@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Support HTML blocks.
+
 ## 0.6.0 - 2021-11-28
 
 ### Added

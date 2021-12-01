@@ -36,8 +36,13 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
+            let index_before_parse_spaces_or_tabs = index;
             index = self.parse_spaces_or_tabs(index);
-            if let Some(length) = self.scan_thematic_break(index) {
+            if let Some(closing) = self.scan_html_block_type_1_to_5(index) {
+                index = self.parse_html_block_type_1_to_5(index, closing);
+            } else if self.scan_html_block_type_6(index) || self.scan_html_block_type_7(index) {
+                index = self.parse_html_block_type_6_to_7(index_before_parse_spaces_or_tabs);
+            } else if let Some(length) = self.scan_thematic_break(index) {
                 index = self.parse_thematic_break(index, length);
             } else if let Some(level) = self.scan_atx_heading(index) {
                 index = self.parse_atx_heading(index, level);
@@ -50,6 +55,38 @@ impl<'a> Parser<'a> {
 
         self.tree.go_to_first();
         self.tree
+    }
+
+    fn parse_html_block_type_6_to_7(&mut self, mut index: usize) -> usize {
+        while index < self.text.len() {
+            let previous_index = index;
+            index += self.scan_line(index);
+            self.tree.append(Block {
+                begin: previous_index,
+                end: index - 1,
+                kind: BlockKind::Html,
+            });
+            if self.scan_blank_line(index).is_some() {
+                break;
+            }
+        }
+        index
+    }
+
+    fn parse_html_block_type_1_to_5(&mut self, mut index: usize, closing: &str) -> usize {
+        while index < self.text.len() {
+            let previous_index = index;
+            index += self.scan_line(index);
+            self.tree.append(Block {
+                begin: previous_index,
+                end: index - 1,
+                kind: BlockKind::Html,
+            });
+            if self.text[previous_index..index].contains(closing) {
+                break;
+            }
+        }
+        index
     }
 
     fn parse_fenced_code_block(
@@ -320,6 +357,234 @@ impl<'a> Parser<'a> {
                 .count()
     }
 
+    /// Return closing sequence.
+    fn scan_html_block_type_1_to_5(&self, index: usize) -> Option<&'static str> {
+        let bytes = self.text[index..].as_bytes();
+        if bytes.get(0)? != &b'<' {
+            return None;
+        }
+
+        let patterns: [(&[u8], &str); 4] = [
+            (b"<pre", "</pre>"),
+            (b"<style", "</style>"),
+            (b"<script", "</script>"),
+            (b"<textarea", "</textarea>"),
+        ];
+        for (openning, closing) in patterns {
+            let length = openning.len();
+            if bytes.len() < length {
+                break;
+            }
+            if !bytes[..length].eq_ignore_ascii_case(openning) {
+                continue;
+            }
+            if bytes.len() == length {
+                return Some(closing);
+            }
+            let following = bytes[length];
+            if is_whitespace(following) || following == b'>' {
+                return Some(closing);
+            }
+        }
+
+        let patterns: [(&[u8], &str); 3] = [(b"<!--", "-->"), (b"<?", "?>"), (b"<![CDATA[", "]]>")];
+        for (openning, closing) in patterns {
+            if bytes.starts_with(openning) {
+                return Some(closing);
+            }
+        }
+
+        if bytes.len() > 2 && bytes.starts_with(b"<!") && (b'A'..=b'z').contains(&bytes[2]) {
+            return Some(">");
+        }
+
+        None
+    }
+
+    fn scan_html_block_type_6(&self, index: usize) -> bool {
+        let bytes = &self.text.as_bytes()[index..];
+        if bytes.is_empty() || bytes[0] != b'<' {
+            return false;
+        }
+        let begin = if bytes.len() >= 2 && bytes[1] == b'/' {
+            2
+        } else {
+            1
+        };
+        let length = bytes[begin..]
+            .iter()
+            .take_while(|&&byte| matches!(byte, b'0'..=b'9' | b'a'..=b'z' | b'A'..=b'Z'))
+            .count();
+        let name = String::from_utf8(bytes[begin..(begin + length)].to_vec())
+            .unwrap()
+            .to_lowercase();
+        let names: [&str; 62] = [
+            "address",
+            "article",
+            "aside",
+            "base",
+            "basefont",
+            "blockquote",
+            "body",
+            "caption",
+            "center",
+            "col",
+            "colgroup",
+            "dd",
+            "details",
+            "dialog",
+            "dir",
+            "div",
+            "dl",
+            "dt",
+            "fieldset",
+            "figcaption",
+            "figure",
+            "footer",
+            "form",
+            "frame",
+            "frameset",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "head",
+            "header",
+            "hr",
+            "html",
+            "iframe",
+            "legend",
+            "li",
+            "link",
+            "main",
+            "menu",
+            "menuitem",
+            "nav",
+            "noframes",
+            "ol",
+            "optgroup",
+            "option",
+            "p",
+            "param",
+            "section",
+            "source",
+            "summary",
+            "table",
+            "tbody",
+            "td",
+            "tfoot",
+            "th",
+            "thead",
+            "title",
+            "tr",
+            "track",
+            "ul",
+        ];
+        names.iter().any(|&element| element == name)
+    }
+
+    fn scan_html_block_type_7(&self, index: usize) -> bool {
+        let mut i = index;
+        if !self.text[i..].starts_with('<') {
+            return false;
+        }
+        i += 1;
+        let is_closing_tag = self.text[i..].starts_with('/');
+        if is_closing_tag {
+            i += 1;
+        }
+        let payload = &self.text[i..];
+        let tag_name_length = payload
+            .find(|c| !is_ascii_alphanumeric(c))
+            .unwrap_or(payload.len());
+        if tag_name_length == 0 {
+            return false;
+        }
+        i += tag_name_length;
+
+        loop {
+            i = self.parse_non_line_ending_whitespaces(i);
+            if self.text[i..].starts_with('/') || self.text[i..].starts_with('>') {
+                break;
+            }
+
+            if let Some(attribute_length) = self.scan_attribute(i) {
+                i += attribute_length;
+            } else {
+                return false;
+            }
+        }
+
+        if !is_closing_tag && self.text[i..].starts_with('/') {
+            i += 1;
+        }
+        self.text[i..].starts_with('>') && self.scan_blank_line(i + 1).is_some()
+    }
+
+    /// Check if HTML tag's attribute part starts from given index, and return its length if found.
+    fn scan_attribute(&self, begin: usize) -> Option<usize> {
+        let mut index = begin;
+        index += self.scan_attribute_name(index)?;
+        let spaces_length = self.parse_spaces(index) - index;
+        if self.text[index + spaces_length..].starts_with('=') {
+            index += spaces_length + 1;
+            index = self.parse_spaces(index);
+            index += self.scan_attribute_value(index)?;
+        }
+        Some(index - begin)
+    }
+
+    /// Check if HTML tag's attribute name starts from given index, and return its length if found.
+    fn scan_attribute_name(&self, index: usize) -> Option<usize> {
+        if self.text[index..].starts_with(|c| is_ascii_alpha(c) || c == '_' || c == ':') {
+            Some(
+                1 + self.text[index + 1..]
+                    .chars()
+                    .take_while(|&c| {
+                        is_ascii_alphanumeric(c) || c == '_' || c == ':' || c == '.' || c == '-'
+                    })
+                    .count(),
+            )
+        } else {
+            None
+        }
+    }
+
+    /// Check if HTML tag's attribute value starts from given index, and return its length if found.
+    fn scan_attribute_value(&self, begin: usize) -> Option<usize> {
+        let mut index = begin;
+        let bytes = &self.text.as_bytes();
+        match *bytes.get(index)? {
+            b @ b'"' | b @ b'\'' => {
+                index += 1;
+                while index < bytes.len() {
+                    if bytes[index] == b {
+                        return Some(index + 1 - begin);
+                    }
+                    if self.scan_line_ending(index).is_some() {
+                        return None;
+                    }
+                    index += 1;
+                }
+                None
+            }
+            b' ' | b'=' | b'>' | b'<' | b'`' | b'\n' | b'\r' => None,
+            _ => Some(
+                bytes
+                    .iter()
+                    .take_while(|&b| {
+                        !matches!(
+                            b,
+                            b'\'' | b'"' | b' ' | b'=' | b'>' | b'<' | b'`' | b'\n' | b'\r'
+                        )
+                    })
+                    .count(),
+            ),
+        }
+    }
+
     fn scan_repeated_byte(&self, index: usize, byte: u8) -> usize {
         let bytes = self.text[index..].as_bytes();
         bytes
@@ -454,6 +719,8 @@ impl<'a> Parser<'a> {
             || self.scan_thematic_break(index).is_some()
             || self.scan_atx_heading(index).is_some()
             || self.scan_openning_code_fence(index).is_some()
+            || self.scan_html_block_type_1_to_5(index).is_some()
+            || self.scan_html_block_type_6(index)
     }
 
     /// Check if line ending starts from given index, and return its length if found.
@@ -507,10 +774,22 @@ impl<'a> Parser<'a> {
     }
 }
 
+fn is_ascii_alpha(c: char) -> bool {
+    matches!(c, 'a'..='z' | 'A'..='Z')
+}
+
+fn is_ascii_alphanumeric(c: char) -> bool {
+    is_ascii_alpha(c) || matches!(c, '0'..='9')
+}
+
 fn is_line_ending(byte: u8) -> bool {
     byte == b'\n' || byte == b'\r'
 }
 
 fn is_non_line_ending_whitespaces(byte: u8) -> bool {
     byte == b'\t' || byte == 0x0b || byte == 0x0c || byte == b' '
+}
+
+fn is_whitespace(byte: u8) -> bool {
+    (0x09..=0x0d).contains(&byte) || byte == b' '
 }
