@@ -10,6 +10,9 @@ where
     for event in iterator {
         match event {
             Begin(tag) => match tag {
+                BlockQuote => {
+                    writer.push_str("<blockquote>\n");
+                }
                 FencedCodeBlock(info) => {
                     let language = info.split(' ').next().unwrap();
                     if language.is_empty() {
@@ -32,6 +35,9 @@ where
                 }
             },
             End(tag) => match tag {
+                BlockQuote => {
+                    writer.push_str("</blockquote>\n");
+                }
                 FencedCodeBlock(_) | IndentedCodeBlock => {
                     writer.push_str("</code></pre>\n");
                 }

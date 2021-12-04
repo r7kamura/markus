@@ -9,6 +9,7 @@ pub struct Block<'a> {
 
 #[derive(Clone, Copy, Debug)]
 pub enum BlockKind<'a> {
+    BlockQuote,
     FencedCodeBlock(&'a str),
     Heading(HeadingLevel),
     Html,

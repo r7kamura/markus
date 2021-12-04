@@ -25,36 +25,60 @@ impl<'a> Parser<'a> {
     fn run(mut self) -> Tree<Block<'a>> {
         let mut index = 0;
         while index < self.text.len() {
+            while let Some(marker_length) = self.scan_block_quote_marker(index) {
+                index = self.parse_block_quote_marker(index, marker_length);
+            }
+
             if let Some(length) = self.scan_blank_line(index) {
                 index += length;
-                continue;
-            }
-
-            let indent_level = self.scan_indent(index);
-            if indent_level == 4 {
-                index = self.parse_indented_code_block(index);
-                continue;
-            }
-
-            let index_before_parse_spaces_or_tabs = index;
-            index = self.parse_spaces_or_tabs(index);
-            if let Some(closing) = self.scan_html_block_type_1_to_5(index) {
-                index = self.parse_html_block_type_1_to_5(index, closing);
-            } else if self.scan_html_block_type_6(index) || self.scan_html_block_type_7(index) {
-                index = self.parse_html_block_type_6_to_7(index_before_parse_spaces_or_tabs);
-            } else if let Some(length) = self.scan_thematic_break(index) {
-                index = self.parse_thematic_break(index, length);
-            } else if let Some(level) = self.scan_atx_heading(index) {
-                index = self.parse_atx_heading(index, level);
-            } else if let Some((length, byte)) = self.scan_openning_code_fence(index) {
-                index = self.parse_fenced_code_block(index, length, byte, indent_level);
             } else {
-                index = self.parse_setext_heading_or_paragraph(index);
+                let indent_level = self.scan_indent(index);
+                if indent_level == 4 {
+                    index = self.parse_indented_code_block(index);
+                } else {
+                    let index_before_parse_spaces_or_tabs = index;
+                    index = self.parse_spaces_or_tabs(index);
+                    if let Some(closing) = self.scan_html_block_type_1_to_5(index) {
+                        index = self.parse_html_block_type_1_to_5(index, closing);
+                    } else if self.scan_html_block_type_6(index)
+                        || self.scan_html_block_type_7(index)
+                    {
+                        index =
+                            self.parse_html_block_type_6_to_7(index_before_parse_spaces_or_tabs);
+                    } else if let Some(length) = self.scan_thematic_break(index) {
+                        index = self.parse_thematic_break(index, length);
+                    } else if let Some(level) = self.scan_atx_heading(index) {
+                        index = self.parse_atx_heading(index, level);
+                    } else if let Some((length, byte)) = self.scan_openning_code_fence(index) {
+                        index = self.parse_fenced_code_block(index, length, byte, indent_level);
+                    } else {
+                        index = self.parse_setext_heading_or_paragraph(index);
+                    }
+                }
+            }
+
+            for _ in 0..self.tree.ancestors.len() {
+                if let Some(marker_length) = self.scan_block_quote_marker(index) {
+                    index += marker_length;
+                } else {
+                    self.tree.go_to_parent();
+                    self.tree.nodes[self.tree.current.unwrap()].item.end = index - 1;
+                }
             }
         }
 
         self.tree.go_to_first();
         self.tree
+    }
+
+    fn parse_block_quote_marker(&mut self, index: usize, marker_length: usize) -> usize {
+        self.tree.append(Block {
+            begin: index,
+            end: 0, // Dummy,
+            kind: BlockKind::BlockQuote,
+        });
+        self.tree.go_to_child();
+        index + marker_length
     }
 
     fn parse_html_block_type_6_to_7(&mut self, mut index: usize) -> usize {
@@ -117,6 +141,10 @@ impl<'a> Parser<'a> {
 
         index += line_length;
         loop {
+            if self.scan_container_markers(index) != self.tree.ancestors.len() - 1 {
+                break;
+            }
+
             let index_to_check_closing = self.parse_indent(index, 3);
             if let Some(length) = self.scan_closing_code_fence(index_to_check_closing, byte, length)
             {
@@ -150,7 +178,9 @@ impl<'a> Parser<'a> {
             if is_non_blank {
                 last_non_blank_node = self.tree.current;
             }
-            if self.scan_indent(index) != 4 && self.scan_blank_line(index).is_none() {
+            if self.scan_container_markers(index) != self.tree.ancestors.len() - 1
+                || self.scan_indent(index) != 4 && self.scan_blank_line(index).is_none()
+            {
                 break;
             }
         }
@@ -177,43 +207,61 @@ impl<'a> Parser<'a> {
             index = self.parse_spaces_or_tabs(index);
             index = self.parse_line(index);
 
+            // Only non-lazy block quoted line can be setext heading marker.
+            let mut lazy = false;
+            let mut index2 = index;
+            for &node_index in &self.tree.ancestors {
+                if let BlockKind::BlockQuote = self.tree.nodes[node_index].item.kind {
+                    if let Some(marker_length) = self.scan_block_quote_marker(index2) {
+                        index2 += marker_length;
+                    } else {
+                        lazy = true;
+                        break;
+                    }
+                }
+            }
+
             // Skip interrupt if 4 spaces indent is detected.
-            let new_index = self.parse_spaces(index);
-            if new_index - index == 4 {
-                continue;
-            }
-            index = new_index;
+            let spaces_length = self.parse_spaces(index2) - index2;
+            if spaces_length != 4 {
+                index2 += spaces_length;
 
-            if let Some((length, level)) = self.scan_setext_heading(index) {
-                index += length;
-                self.tree.nodes[*self.tree.ancestors.last().unwrap()]
-                    .item
-                    .kind = BlockKind::Heading(level);
-                if let Some(node_index) = self.tree.current {
-                    let item = self.tree.nodes[node_index].item;
-                    let text = &self.text.as_bytes()[..item.end];
-                    let tail = text
-                        .iter()
-                        .rposition(|&byte| !is_non_line_ending_whitespaces(byte))
-                        .unwrap_or(0);
-                    self.tree.nodes[node_index].item.end = tail;
+                if !lazy {
+                    if let Some((length, level)) = self.scan_setext_heading(index2) {
+                        index2 += length;
+                        self.tree.nodes[*self.tree.ancestors.last().unwrap()]
+                            .item
+                            .kind = BlockKind::Heading(level);
+                        if let Some(node_index) = self.tree.current {
+                            let item = self.tree.nodes[node_index].item;
+                            let text = &self.text.as_bytes()[..item.end];
+                            let tail = text
+                                .iter()
+                                .rposition(|&byte| !is_non_line_ending_whitespaces(byte))
+                                .unwrap_or(0);
+                            self.tree.nodes[node_index].item.end = tail;
+                        }
+                        index = index2;
+                        break;
+                    }
                 }
-                break;
+
+                if self.scan_paragraph_interrupt(index2) {
+                    if let Some(node_index) = self.tree.current {
+                        let item = self.tree.nodes[node_index].item;
+                        let text = &self.text.as_bytes()[item.begin..=item.end];
+                        let mut tail = text.len();
+                        tail = text[..tail]
+                            .iter()
+                            .rposition(|&byte| byte != b'\n' && byte != b'\r')
+                            .map_or(0, |i| i + 1);
+                        self.tree.nodes[node_index].item.end = item.begin + tail - 1;
+                    }
+                    break;
+                }
             }
 
-            if self.scan_paragraph_interrupt(index) {
-                if let Some(node_index) = self.tree.current {
-                    let item = self.tree.nodes[node_index].item;
-                    let text = &self.text.as_bytes()[item.begin..=item.end];
-                    let mut tail = text.len();
-                    tail = text[..tail]
-                        .iter()
-                        .rposition(|&byte| byte != b'\n' && byte != b'\r')
-                        .map_or(0, |i| i + 1);
-                    self.tree.nodes[node_index].item.end = item.begin + tail - 1;
-                }
-                break;
-            }
+            index = index2;
         }
 
         self.tree.go_to_parent();
@@ -347,6 +395,10 @@ impl<'a> Parser<'a> {
                 .count()
     }
 
+    fn parse_spaces_up_to(&self, index: usize, count: usize) -> usize {
+        index + std::cmp::min(self.parse_spaces(index) - index, count)
+    }
+
     /// Parse 0 or more non line ending whitespaces, and return index after parse.
     fn parse_non_line_ending_whitespaces(&self, index: usize) -> usize {
         index
@@ -355,6 +407,18 @@ impl<'a> Parser<'a> {
                 .iter()
                 .take_while(|&&byte| is_non_line_ending_whitespaces(byte))
                 .count()
+    }
+
+    /// May return block quote marker byte length that starts from given byte index.
+    fn scan_block_quote_marker(&self, begin: usize) -> Option<usize> {
+        let mut index = self.parse_spaces_up_to(begin, 3);
+        if self.text[index..].starts_with('>') {
+            index += 1;
+            index = self.parse_spaces_up_to(index, 1);
+            Some(index - begin)
+        } else {
+            None
+        }
     }
 
     /// Return closing sequence.
@@ -721,6 +785,7 @@ impl<'a> Parser<'a> {
             || self.scan_openning_code_fence(index).is_some()
             || self.scan_html_block_type_1_to_5(index).is_some()
             || self.scan_html_block_type_6(index)
+            || self.scan_block_quote_marker(index).is_some()
     }
 
     /// Check if line ending starts from given index, and return its length if found.
@@ -771,6 +836,22 @@ impl<'a> Parser<'a> {
         } else {
             bytes.len()
         }
+    }
+
+    // Scan how many container markers are located from given index, and return its count.
+    fn scan_container_markers(&self, mut index: usize) -> usize {
+        let mut count = 0;
+        for &node_index in &self.tree.ancestors {
+            if let BlockKind::BlockQuote = self.tree.nodes[node_index].item.kind {
+                if let Some(marker_length) = self.scan_block_quote_marker(index) {
+                    index += marker_length;
+                    count += 1;
+                } else {
+                    break;
+                }
+            }
+        }
+        count
     }
 }
 
