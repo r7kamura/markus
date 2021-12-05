@@ -26,6 +26,10 @@ impl<'a> Iterator for Parser<'a> {
             Some(index) => {
                 let node = self.tree.nodes[index];
                 match node.item.kind {
+                    BlockKind::BlockQuote => {
+                        self.tree.go_to_child();
+                        Some(Event::Begin(Tag::BlockQuote))
+                    }
                     BlockKind::FencedCodeBlock(info) => {
                         self.tree.go_to_child();
                         Some(Event::Begin(Tag::FencedCodeBlock(info)))
@@ -60,6 +64,7 @@ impl<'a> Iterator for Parser<'a> {
                 self.tree.go_to_parent();
                 let index = self.tree.current?;
                 let event = match self.tree.nodes[index].item.kind {
+                    BlockKind::BlockQuote => Some(Event::End(Tag::BlockQuote)),
                     BlockKind::FencedCodeBlock(info) => {
                         Some(Event::End(Tag::FencedCodeBlock(info)))
                     }
