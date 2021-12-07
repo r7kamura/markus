@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.7.0 - 2021-12-08
+
 ### Added
 
 - Support HTML blocks.
