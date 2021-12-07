@@ -1,6 +1,7 @@
 use crate::types::Event;
 use crate::types::Event::*;
 use crate::types::Tag::*;
+use std::fmt::Write;
 use std::iter::Iterator;
 
 pub fn push_html<'a, I>(writer: &mut String, iterator: I)
@@ -48,8 +49,19 @@ where
                     writer.push_str("</p>\n");
                 }
             },
-            Text(value) => {
+            Html(value) => {
                 writer.push_str(value);
+            }
+            Text(value) => {
+                for c in value.chars() {
+                    match c {
+                        '"' => writer.push_str("&quot;"),
+                        '&' => writer.push_str("&amp;"),
+                        '<' => writer.push_str("&lt;"),
+                        '>' => writer.push_str("&gt;"),
+                        _ => writer.write_char(c).unwrap(),
+                    }
+                }
             }
             ThematicBreak => {
                 writer.push_str("<hr />\n");

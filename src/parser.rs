@@ -40,7 +40,7 @@ impl<'a> Iterator for Parser<'a> {
                     }
                     BlockKind::Html => {
                         self.tree.go_to_next_sibling();
-                        Some(Event::Text(&self.text[node.item.begin..node.item.end + 1]))
+                        Some(Event::Html(&self.text[node.item.begin..node.item.end + 1]))
                     }
                     BlockKind::IndentedCodeBlock => {
                         self.tree.go_to_child();

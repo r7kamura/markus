@@ -6,6 +6,7 @@
 
 - Support HTML blocks.
 - Support block quotes.
+- Escape some characters in text.
 
 ## 0.6.0 - 2021-11-28
 
